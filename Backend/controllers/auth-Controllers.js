@@ -1,28 +1,18 @@
 const User = require("../models/user");
-const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 exports.signup = async (req, res) => {
     try {
-
         const { name, email, password } = req.body;
+        // Note: Zod middleware already validated fields before we get here
 
-        // validation
-        if (!name || !email || !password) {
-            return res.status(400).json({
-                success: false,
-                message: "All fields are required"
-            });
-        }
-
-        // existing user check
+        // Check for existing user
         const existingUser = await User.findOne({ email });
-
         if (existingUser) {
             return res.status(409).json({
                 success: false,
-                message: "User already exists"
+                message: "An account with this email already exists"
             });
         }
 
@@ -37,11 +27,22 @@ exports.signup = async (req, res) => {
             password: hashedPassword
         });
 
+        // Generate token so frontend can auto-login after signup
+        const token = jwt.sign(
+            { id: user._id, email: user.email, name: user.name },
+            process.env.JWT_SECRET_KEY,
+            { expiresIn: "7d" }
+        );
+
+        user.password = undefined;
+
         return res.status(201).json({
             success: true,
-            message: "User registered successfully",
+            message: "Account created successfully",
+            token,
             user
         });
+
 
     } catch (error) {
 
@@ -57,24 +58,18 @@ exports.signup = async (req, res) => {
 
 exports.login = async (req, res) => {
     try {
-
         const { email, password } = req.body;
-
-        if (!email || !password) {
-            return res.status(400).json({
-                success: false,
-                message: "All fields are required"
-            });
-        }
+        // Note: Zod middleware already validated fields before we get here
 
         const user = await User.findOne({ email });
 
         if (!user) {
             return res.status(404).json({
                 success: false,
-                message: "User not found"
+                message: "No account found with this email"
             });
         }
+
 
         const isMatch = await bcrypt.compare(
             password,
@@ -91,11 +86,12 @@ exports.login = async (req, res) => {
         const token = jwt.sign(
             {
                 id: user._id,
-                email: user.email
+                email: user.email,
+                name: user.name
             },
             process.env.JWT_SECRET_KEY,
             {
-                expiresIn: "15min"
+                expiresIn: "7d"  // 7 days — user stays logged in
             }
         );
 

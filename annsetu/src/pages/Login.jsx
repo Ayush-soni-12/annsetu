@@ -1,101 +1,138 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
+import { z } from "zod";
+import { login as loginAPI } from "../services/api";
+import { useAuth } from "../context/AuthContext";
 
+// ─── Zod schema ──────────────────────────────────────────────
+const loginSchema = z.object({
+  email: z.string().min(1, "Email is required").email("Enter a valid email"),
+  password: z.string().min(1, "Password is required"),
+});
 
 export default function Login() {
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [fieldErrors, setFieldErrors] = useState({}); // Zod per-field errors
+
+  const { mutate: loginMutate, isPending, isError, error } = useMutation({
+    mutationFn: loginAPI,
+    onSuccess: (res) => {
+      login(res.data.token, res.data.user); // update global auth context
+      navigate("/dashboard");
+    },
   });
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    // Clear field error when user starts typing
+    setFieldErrors((prev) => ({ ...prev, [e.target.name]: undefined }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(form);
+
+    // Client-side Zod validation first
+    const result = loginSchema.safeParse(form);
+    if (!result.success) {
+      const errors = {};
+      result.error.errors.forEach((err) => {
+        errors[err.path[0]] = err.message;
+      });
+      setFieldErrors(errors);
+      return; // stop — don't call API
+    }
+
+    loginMutate(form);
   };
 
   return (
-    <>
-      
-      <section className="min-h-screen bg-[#f8f8f8] flex items-center justify-center px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="bg-white w-full max-w-md rounded-2xl shadow-lg p-8"
-        >
-          {/* 🌿 Heading */}
-          <div className="text-center mb-6">
-            <h2 className="text-3xl font-bold">
-              Welcome to Ann<span className="text-red-500">❤</span>setu
-            </h2>
-            <p className="text-sm text-gray-500 mt-2">
-              Login to continue your journey
-            </p>
+    <section className="min-h-screen bg-[#f8f8f8] flex items-center justify-center px-6">
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="bg-white w-full max-w-md rounded-2xl shadow-lg p-8"
+      >
+        <div className="text-center mb-6">
+          <h2 className="text-3xl font-bold">
+            Welcome to Ann<span className="text-red-500">❤</span>setu
+          </h2>
+          <p className="text-sm text-gray-500 mt-2">Login to continue your journey</p>
+        </div>
+
+        {/* API Error from backend */}
+        {isError && (
+          <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3 mb-4">
+            {error?.response?.data?.message || "Login failed. Try again."}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Email */}
+          <div>
+            <label className="text-sm text-gray-600">Email</label>
+            <input
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              placeholder="Enter your email"
+              className={`w-full mt-1 px-4 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-400 ${
+                fieldErrors.email ? "border-red-400" : ""
+              }`}
+            />
+            {fieldErrors.email && (
+              <p className="text-red-500 text-xs mt-1">{fieldErrors.email}</p>
+            )}
           </div>
 
-          {/* 🔐 Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="text-sm text-gray-600">Email</label>
-              <input
-                type="email"
-                name="email"
-                value={form.email}
-                onChange={handleChange}
-                placeholder="Enter your email"
-                className="w-full mt-1 px-4 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-400"
-                required
-              />
-            </div>
+          {/* Password */}
+          <div>
+            <label className="text-sm text-gray-600">Password</label>
+            <input
+              type="password"
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              placeholder="Enter your password"
+              className={`w-full mt-1 px-4 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-400 ${
+                fieldErrors.password ? "border-red-400" : ""
+              }`}
+            />
+            {fieldErrors.password && (
+              <p className="text-red-500 text-xs mt-1">{fieldErrors.password}</p>
+            )}
+          </div>
 
-            <div>
-              <label className="text-sm text-gray-600">Password</label>
-              <input
-                type="password"
-                name="password"
-                value={form.password}
-                onChange={handleChange}
-                placeholder="Enter your password"
-                className="w-full mt-1 px-4 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-400"
-                required
-              />
-            </div>
+          <div className="text-right text-sm">
+            <span className="text-orange-500 cursor-pointer hover:underline">
+              Forgot Password?
+            </span>
+          </div>
 
-            {/* Forgot */}
-            <div className="text-right text-sm">
-              <span className="text-orange-500 cursor-pointer hover:underline">
-                Forgot Password?
-              </span>
-            </div>
+          <motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            type="submit"
+            disabled={isPending}
+            className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white py-2 rounded-xl font-semibold transition"
+          >
+            {isPending ? "Logging in..." : "Login"}
+          </motion.button>
+        </form>
 
-            {/* Button */}
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              type="submit"
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-xl font-semibold transition"
-            >
-              Login
-            </motion.button>
-          </form>
-
-          {/* Signup */}
-          <p className="text-center text-sm text-gray-500 mt-6">
-            Don’t have an account?{" "}
-            <Link
-              to="/signup"
-              className="text-orange-500 cursor-pointer hover:underline"
-            >
-              Sign up
-            </Link>
-          </p>
-        </motion.div>
-      </section>
-    </>
+        <p className="text-center text-sm text-gray-500 mt-6">
+          Don't have an account?{" "}
+          <Link to="/signup" className="text-orange-500 hover:underline">
+            Sign up
+          </Link>
+        </p>
+      </motion.div>
+    </section>
   );
 }
