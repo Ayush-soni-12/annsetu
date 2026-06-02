@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Utensils, HeartHandshake, MapPin, LogOut, PlusCircle, Clock } from "lucide-react";
@@ -89,7 +89,7 @@ export default function Dashboard() {
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.96 }}
               onClick={() => navigate("/donate")}
-              className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-3 rounded-xl font-semibold shadow-md"
+              className="flex items-center gap-2 bg-linear-to-r from-orange-500 to-red-500 text-white px-6 py-3 rounded-xl font-semibold shadow-md"
             >
               <PlusCircle size={18} />
               Donate Food

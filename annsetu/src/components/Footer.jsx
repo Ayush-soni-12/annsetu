@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { NavLink } from "react-router-dom";
 
 export default function Footer() {
@@ -75,7 +74,7 @@ export default function Footer() {
               placeholder="Enter your email"
               className="bg-transparent px-4 py-2 w-full outline-none text-sm"
             />
-            <button className="bg-gradient-to-r from-orange-500 to-red-500 px-5 text-white text-sm">
+            <button className="bg-linear-to-r from-orange-500 to-red-500 px-5 text-white text-sm">
               Subscribe
             </button>
           </div>

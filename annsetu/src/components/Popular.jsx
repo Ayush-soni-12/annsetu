@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { Users, Utensils, HeartHandshake, Building2 } from "lucide-react";
 
 const stats = [
@@ -70,7 +69,7 @@ export default function StatsSection() {
               className="relative bg-white/80 backdrop-blur-md rounded-3xl p-10 text-center shadow-md hover:shadow-xl hover:-translate-y-3 transition-all duration-300"
             >
               {/* 🌿 subtle gradient */}
-              <div className="absolute inset-0 bg-gradient-to-br from-orange-100/20 to-transparent rounded-3xl"></div>
+              <div className="absolute inset-0 bg-linear-to-br from-orange-100/20 to-transparent rounded-3xl"></div>
 
               <div className="relative z-10 flex flex-col items-center">
 

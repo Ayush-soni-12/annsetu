@@ -1,10 +1,9 @@
-import { motion } from "framer-motion";
 import impact from "../assets/impact.png";
 import { Link, NavLink } from "react-router-dom";
 
 export default function Hero() {
   return (
-    <section className="w-full min-h-[90vh] bg-gradient-to-br from-orange-50 to-red-50 flex items-center px-6 md:px-16">
+    <section className="w-full min-h-[90vh] bg-linear-to-br from-orange-50 to-red-50 flex items-center px-6 md:px-16">
       
       <div className="max-w-7xl mx-auto w-full grid md:grid-cols-2 gap-10 items-center">
         
@@ -30,7 +29,7 @@ export default function Hero() {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-3 rounded-xl font-semibold shadow-md"
+              className="bg-linear-to-r from-orange-500 to-red-500 text-white px-6 py-3 rounded-xl font-semibold shadow-md"
               >
               Donate Now 🍱
             </motion.button>

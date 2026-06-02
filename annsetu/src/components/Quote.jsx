@@ -1,4 +1,4 @@
-import { motion, useScroll, useTransform } from "framer-motion";
+import { useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 
 // Each word is its own component so hooks are called at the top level (Rules of Hooks)

@@ -16,7 +16,7 @@ function Navbar() {
 
   return (
     <>
-      <nav className="bg-white border-b-[2px] bg-gradient-to-br from-orange-50 to-red-50 shadow-md px-6 md:px-10 py-4 flex items-center justify-between relative">
+      <nav className="bg-white border-b-2 bg-linear-to-br from-orange-50 to-red-50 shadow-md px-6 md:px-10 py-4 flex items-center justify-between relative">
 
         {/* LEFT - LOGO + NAME */}
         <NavLink to="/" className="flex items-center gap-3">
@@ -75,7 +75,7 @@ function Navbar() {
                 </button>
               </NavLink>
               <NavLink to="/signup">
-                <button className="bg-gradient-to-r from-[#FF9933] to-[#D4AF37] text-white px-5 py-2 rounded-full shadow hover:scale-105 transition">
+                <button className="bg-linear-to-r from-[#FF9933] to-[#D4AF37] text-white px-5 py-2 rounded-full shadow hover:scale-105 transition">
                   Donate now
                 </button>
               </NavLink>

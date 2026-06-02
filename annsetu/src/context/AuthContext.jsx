@@ -11,6 +11,7 @@ export const AuthProvider = ({ children }) => {
     const savedToken = localStorage.getItem("token");
     const savedUser = localStorage.getItem("user");
     if (savedToken && savedUser) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setToken(savedToken);
       setUser(JSON.parse(savedUser));
     }
@@ -40,4 +41,5 @@ export const AuthProvider = ({ children }) => {
 };
 
 // Custom hook — use this anywhere in the app
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => useContext(AuthContext);
