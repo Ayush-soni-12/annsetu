@@ -19,4 +19,12 @@ export const signup = (data) => API.post("/auth/signup", data);
 export const login = (data) => API.post("/auth/login", data);
 export const getMe = () => API.get("/auth/me");
 
+// ─── Donation APIs ────────────────────────────────────────────
+export const createDonation = (data) => API.post("/donations", data);
+export const getMyDonations = () => API.get("/donations/my");
+export const getDonationById = (id) => API.get(`/donations/${id}`);
+export const uploadImage = (formData) => API.post("/upload", formData, {
+  headers: { "Content-Type": "multipart/form-data" }
+});
+
 export default API;
