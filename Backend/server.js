@@ -1,8 +1,11 @@
-require("dotenv").config();
+require("dotenv").config(); // loaded
+
 const express = require("express");
 const cors = require("cors");
 const connectDB = require("./database/db");
 const authRouter = require("./routes/auth-Routes");
+const donationRouter = require("./routes/donation-Routes");
+const uploadRouter = require("./routes/upload-Routes");
 
 connectDB();
 const app = express();
@@ -17,6 +20,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use("/api/auth", authRouter);
+app.use("/api/donations", donationRouter);
+app.use("/api/upload", uploadRouter);
 
 // Health check
 app.get("/", (req, res) => res.json({ success: true, message: "Annsetu API is running" }));
