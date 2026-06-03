@@ -1,4 +1,6 @@
 import { Users, Utensils, HeartHandshake, Building2 } from "lucide-react";
+import { motion } from "framer-motion";
+
 
 const stats = [
   {
