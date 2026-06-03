@@ -10,6 +10,7 @@ import HowIt from "./pages/HowIt";
 import About from "./pages/About";
 import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Profile from "./pages/Profile";
 
 const App = () => {
   const { isAuthenticated } = useAuth();
@@ -47,6 +48,14 @@ const App = () => {
         element={
           <ProtectedRoute>
             <Donate />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <Profile />
           </ProtectedRoute>
         }
       />
