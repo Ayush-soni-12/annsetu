@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+
 
 export default function DonateFood() {
   const [form, setForm] = useState({
@@ -108,7 +108,7 @@ export default function DonateFood() {
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-3 rounded-xl font-semibold"
+          className="w-full bg-linear-to-r from-orange-500 to-red-500 text-white py-3 rounded-xl font-semibold"
         >
           Donate Food 🍱
         </motion.button>

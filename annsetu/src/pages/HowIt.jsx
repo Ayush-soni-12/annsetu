@@ -68,7 +68,7 @@ export default function HowItWorks() {
         <NavLink to="/signup">
         <motion.button
           whileHover={{ scale: 1.05 }}
-          className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-8 py-3 rounded-xl font-semibold"
+          className="bg-linear-to-r from-orange-500 to-red-500 text-white px-8 py-3 rounded-xl font-semibold"
         >
           Donate now 🍱
         </motion.button>

@@ -1,4 +1,4 @@
-
+import {motion} from 'framer-motion';
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
@@ -127,7 +127,7 @@ export default function Login() {
         </form>
 
         <p className="text-center text-sm text-gray-500 mt-6">
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <Link to="/signup" className="text-orange-500 hover:underline">
             Sign up
           </Link>

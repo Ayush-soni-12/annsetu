@@ -1,5 +1,8 @@
+
+import { motion } from "framer-motion";
 import impact from "../assets/impact.png";
 import { Link, NavLink } from "react-router-dom";
+
 
 export default function Hero() {
   return (

@@ -1,4 +1,5 @@
 
+import {motion} from 'framer-motion';
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Utensils, HeartHandshake, MapPin, LogOut, PlusCircle, Clock } from "lucide-react";

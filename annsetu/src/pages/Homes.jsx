@@ -1,5 +1,6 @@
 import bg from "../assets/hunger.jpg";
 
+
 function Landing() {
   return (
     <div className="min-h-fit">

@@ -1,5 +1,4 @@
-import React from 'react';
-// Agar aapke paas about page ke liye koi image hai toh use yahan import karein
+
 import aboutImage from '../assets/mission.jpg';             
 
 const About = () => {
@@ -12,7 +11,7 @@ const About = () => {
           Bridging the Gap Between <span className="text-[#8B0000]">Surplus and Need</span>
         </h1>
         <p className="text-lg md:text-xl text-gray-700 leading-relaxed">
-          Annsetu is more than just a platform; it's a movement. We believe that in a country that produces enough food to feed everyone, no one should have to sleep hungry. We are the bridge connecting those who have surplus food with those who need it the most.
+          Annsetu is more than just a platform; it&apos;s a movement. We believe that in a country that produces enough food to feed everyone, no one should have to sleep hungry. We are the bridge connecting those who have surplus food with those who need it the most.
         </p>
       </section>
 

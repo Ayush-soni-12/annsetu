@@ -1,11 +1,13 @@
-import { useScroll, useTransform } from "framer-motion";
+
+import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 
 // Each word is its own component so hooks are called at the top level (Rules of Hooks)
+// eslint-disable-next-line react/prop-types
 function WordSpan({ word, scrollYProgress, index, total }) {
   const start = index / total;
   const end = start + 0.15;
-
+  
   const color = useTransform(scrollYProgress, [start, end], ["#9ca3af", "#000"]);
 
   return (
