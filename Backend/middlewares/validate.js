@@ -53,8 +53,59 @@ const loginSchema = z.object({
     .min(1, "Password is required"),
 });
 
+const donationSchema = z.object({
+  donorName: z
+    .string({ required_error: "Your name is required" })
+    .trim()
+    .min(2, "Name must be at least 2 characters"),
+
+  phone: z
+    .string({ required_error: "Phone number is required" })
+    .trim()
+    .min(10, "Enter a valid phone number"),
+
+  foodName: z
+    .string({ required_error: "Food name is required" })
+    .trim()
+    .min(1, "Food name cannot be empty"),
+
+  foodType: z.enum(["Cooked Food", "Raw Ingredients", "Packaged Food"], {
+    errorMap: () => ({ message: "Please select a valid food type" }),
+  }),
+
+  foodCategory: z.enum(["Vegetarian", "Non-Vegetarian", "Vegan"], {
+    errorMap: () => ({ message: "Please select a food category" }),
+  }),
+
+  quantity: z
+    .string({ required_error: "Quantity is required" })
+    .trim()
+    .min(1, "Quantity cannot be empty"),
+
+  serves: z
+    .union([z.string(), z.number()])
+    .transform((val) => Number(val))
+    .refine((val) => !isNaN(val) && val > 0, {
+      message: "Serves must be a positive number",
+    }),
+
+  pickupTime: z
+    .string({ required_error: "Pickup date & time is required" })
+    .min(1, "Pickup date & time is required"),
+
+  address: z
+    .string({ required_error: "Pickup address is required" })
+    .trim()
+    .min(5, "Please enter a complete address"),
+
+  instructions: z.string().trim().optional().default(""),
+  
+  foodImageUrl: z.string().url("Must be a valid URL").optional(),
+});
+
 module.exports = {
   validate,
   signupSchema,
   loginSchema,
+  donationSchema,
 };
