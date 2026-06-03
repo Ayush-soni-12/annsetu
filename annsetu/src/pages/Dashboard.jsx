@@ -1,22 +1,18 @@
-
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Utensils, HeartHandshake, MapPin, LogOut, PlusCircle, Clock } from "lucide-react";
+import logo from "../assets/logo.jpeg";
 
-const statCards = [
-  { label: "Meals Donated", value: "0", icon: Utensils, color: "bg-orange-100 text-orange-600" },
-  { label: "NGOs Helped", value: "0", icon: HeartHandshake, color: "bg-red-100 text-red-600" },
-  { label: "Pickups Done", value: "0", icon: MapPin, color: "bg-yellow-100 text-yellow-600" },
-];
-
-const container = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.12 } },
-};
-const item = {
-  hidden: { opacity: 0, y: 30 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-};
+import {
+  LayoutDashboard,
+  UtensilsCrossed,
+  History,
+  User,
+  Settings,
+  LogOut,
+  HeartHandshake,
+  MapPin,
+  Plus,
+} from "lucide-react";
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
@@ -28,112 +24,199 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fdf8f2]">
+    <div className="min-h-screen bg-[#faf8f5] flex">
 
-      {/* Top bar */}
-      <div className="bg-white border-b px-6 md:px-16 py-4 flex items-center justify-between shadow-sm">
+      {/* Sidebar */}
+      <aside className="w-72 bg-white border-r shadow-sm hidden lg:flex flex-col justify-between">
+
         <div>
-          <h1 className="text-xl font-bold text-gray-800">
-            👋 Welcome back, <span className="text-orange-500">{user?.name}</span>
-          </h1>
-          <p className="text-sm text-gray-400">{user?.email}</p>
-        </div>
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-2 text-sm text-gray-500 hover:text-red-500 transition"
-        >
-          <LogOut size={16} />
-          Logout
-        </button>
-      </div>
+          <div className="p-8 flex flex-col items-center">
+            <img
+              src={logo}
+              alt="AnnSetu"
+              className="w-32 h-32 object-contain"
+            />
 
-      <div className="max-w-6xl mx-auto px-6 md:px-16 py-10">
+            <h1 className="text-4xl font-bold text-orange-600 mt-2">
+              AnnSetu
+            </h1>
+
+            <p className="text-sm text-gray-500 text-center mt-2">
+              Food for all, kindness for life
+            </p>
+          </div>
+
+          <nav className="px-4 mt-6 space-y-3">
+
+            <button className="w-full flex items-center gap-3 bg-orange-500 text-white px-5 py-4 rounded-2xl">
+              <LayoutDashboard size={20} />
+              Dashboard
+            </button>
+
+            <button
+              onClick={() => navigate("/donate")}
+              className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl hover:bg-orange-50"
+            >
+              <UtensilsCrossed size={20} />
+              Donate Food
+            </button>
+
+            <button className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl hover:bg-orange-50">
+              <History size={20} />
+              History
+            </button>
+
+            <button className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl hover:bg-orange-50">
+              <User size={20} />
+              Profile
+            </button>
+
+            <button className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl hover:bg-orange-50">
+              <Settings size={20} />
+              Settings
+            </button>
+          </nav>
+        </div>
+
+        <div className="p-4">
+          <button
+            onClick={handleLogout}
+            className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-4 rounded-2xl flex items-center justify-center gap-2"
+          >
+            <LogOut size={18} />
+            Logout
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 p-8">
+
+        {/* Welcome */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-800">
+            Welcome Back, {user?.name} 👋
+          </h1>
+
+          <p className="text-gray-500 mt-2">
+            You're making a difference today.
+          </p>
+        </div>
+
+        {/* Hero Banner */}
+        <div className="bg-gradient-to-r from-orange-500 to-red-500 rounded-3xl p-8 text-white flex justify-between items-center mb-8">
+
+          <div>
+            <h2 className="text-4xl font-bold">
+              Small Act, Big Impact ❤️
+            </h2>
+
+            <p className="mt-3 text-orange-100">
+              Donate food, spread happiness and help build a better tomorrow.
+            </p>
+          </div>
+
+          <button
+            onClick={() => navigate("/donate")}
+            className="bg-white text-orange-600 px-6 py-3 rounded-2xl font-semibold"
+          >
+            Donate Now →
+          </button>
+        </div>
 
         {/* Stats */}
-        <motion.div
-          variants={container}
-          initial="hidden"
-          animate="show"
-          className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10"
-        >
-          {statCards.map((card) => {
-            const Icon = card.icon;
-            return (
-              <motion.div
-                key={card.label}
-                variants={item}
-                className="bg-white rounded-2xl shadow-sm p-6 flex items-center gap-5 border border-gray-100"
+        <div className="grid md:grid-cols-4 gap-6 mb-8">
+
+          <div className="bg-white rounded-3xl p-6 shadow-sm">
+            <UtensilsCrossed className="text-orange-500 mb-4" />
+            <h3 className="text-4xl font-bold">0</h3>
+            <p className="text-gray-500">Meals Donated</p>
+          </div>
+
+          <div className="bg-white rounded-3xl p-6 shadow-sm">
+            <HeartHandshake className="text-red-500 mb-4" />
+            <h3 className="text-4xl font-bold">0</h3>
+            <p className="text-gray-500">NGOs Helped</p>
+          </div>
+
+          <div className="bg-white rounded-3xl p-6 shadow-sm">
+            <MapPin className="text-yellow-500 mb-4" />
+            <h3 className="text-4xl font-bold">0</h3>
+            <p className="text-gray-500">Pickups Done</p>
+          </div>
+
+          <div className="bg-white rounded-3xl p-6 shadow-sm">
+            <span className="text-green-500 text-2xl">🌱</span>
+            <h3 className="text-4xl font-bold mt-4">0</h3>
+            <p className="text-gray-500">CO₂ Saved</p>
+          </div>
+
+        </div>
+
+        {/* Bottom Section */}
+        <div className="grid lg:grid-cols-3 gap-6">
+
+          {/* Donations */}
+          <div className="lg:col-span-2 bg-white rounded-3xl p-8 shadow-sm">
+
+            <div className="flex justify-between mb-6">
+              <h2 className="text-xl font-bold">
+                Recent Donations
+              </h2>
+            </div>
+
+            <div className="text-center py-16">
+
+              <div className="text-7xl mb-4">
+                🍱
+              </div>
+
+              <h3 className="text-xl font-semibold">
+                No Donations Yet
+              </h3>
+
+              <p className="text-gray-500 mt-2">
+                Your donations will appear here.
+              </p>
+
+              <button
+                onClick={() => navigate("/donate")}
+                className="mt-6 bg-orange-500 text-white px-6 py-3 rounded-xl"
               >
-                <div className={`p-3 rounded-xl ${card.color}`}>
-                  <Icon size={24} />
-                </div>
-                <div>
-                  <p className="text-3xl font-bold text-gray-800">{card.value}</p>
-                  <p className="text-sm text-gray-500">{card.label}</p>
-                </div>
-              </motion.div>
-            );
-          })}
-        </motion.div>
+                Make First Donation
+              </button>
 
-        {/* Quick Actions */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="mb-10"
-        >
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">Quick Actions</h2>
-          <div className="flex flex-wrap gap-4">
-            <motion.button
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.96 }}
-              onClick={() => navigate("/donate")}
-              className="flex items-center gap-2 bg-linear-to-r from-orange-500 to-red-500 text-white px-6 py-3 rounded-xl font-semibold shadow-md"
-            >
-              <PlusCircle size={18} />
-              Donate Food
-            </motion.button>
-
-            <motion.button
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.96 }}
-              className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-6 py-3 rounded-xl font-semibold shadow-sm"
-            >
-              <Clock size={18} />
-              View History
-            </motion.button>
+            </div>
           </div>
-        </motion.div>
 
-        {/* Recent Donations */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.55 }}
-          className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6"
-        >
-          <h2 className="text-lg font-semibold text-gray-700 mb-6">Recent Donations</h2>
+          {/* Quick Actions */}
+          <div className="bg-white rounded-3xl p-8 shadow-sm">
 
-          {/* Empty state */}
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="text-6xl mb-4">🍱</div>
-            <p className="text-gray-500 font-medium">No donations yet</p>
-            <p className="text-sm text-gray-400 mt-1 mb-6">
-              Your first donation will appear here. Start making a difference today!
-            </p>
-            <motion.button
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.96 }}
-              onClick={() => navigate("/donate")}
-              className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-xl font-semibold transition text-sm"
-            >
-              Make your first donation →
-            </motion.button>
+            <h2 className="text-xl font-bold mb-6">
+              Quick Actions
+            </h2>
+
+            <div className="space-y-4">
+
+              <button
+                onClick={() => navigate("/donate")}
+                className="w-full bg-orange-500 text-white p-4 rounded-2xl flex items-center gap-3"
+              >
+                <Plus />
+                Donate Food
+              </button>
+
+              <button className="w-full border p-4 rounded-2xl">
+                View History
+              </button>
+
+            </div>
+
           </div>
-        </motion.div>
 
-      </div>
+        </div>
+
+      </main>
     </div>
   );
 }
