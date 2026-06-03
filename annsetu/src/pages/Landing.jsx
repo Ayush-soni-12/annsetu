@@ -10,7 +10,6 @@ import Last from '../components/Last';
 const Home = () => {
   return (
     <div className="w-full min-h-screen">
-      
       <Hero />
       <Quote />
       <Popular />

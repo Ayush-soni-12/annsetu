@@ -5,6 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { z } from "zod";
 import { login as loginAPI } from "../services/api";
 import { useAuth } from "../context/AuthContext";
+import { motion } from "framer-motion";
 
 // ─── Zod schema ──────────────────────────────────────────────
 const loginSchema = z.object({
@@ -40,7 +41,7 @@ export default function Login() {
     const result = loginSchema.safeParse(form);
     if (!result.success) {
       const errors = {};
-      result.error.errors.forEach((err) => {
+      result.error.issues.forEach((err) => {
         errors[err.path[0]] = err.message;
       });
       setFieldErrors(errors);

@@ -21,7 +21,6 @@ const App = () => {
         <Route index element={<Landing />} />
         <Route path="/how-it-works" element={<HowIt />} />
         <Route path="/about" element={<About />} />
-        <Route path="/donate" element={<Donate />} />
 
         {/* Redirect logged-in users away from login/signup */}
         <Route
@@ -34,12 +33,20 @@ const App = () => {
         />
       </Route>
 
-      {/* Dashboard — outside Navbar layout (has its own top bar) */}
+      {/* Dashboard & Donate — outside Navbar layout */}
       <Route
         path="/dashboard"
         element={
           <ProtectedRoute>
             <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/donate"
+        element={
+          <ProtectedRoute>
+            <Donate />
           </ProtectedRoute>
         }
       />
