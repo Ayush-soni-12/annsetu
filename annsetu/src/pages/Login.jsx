@@ -1,11 +1,10 @@
-import {motion} from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { z } from "zod";
 import { login as loginAPI } from "../services/api";
 import { useAuth } from "../context/AuthContext";
-import { motion } from "framer-motion";
 
 // ─── Zod schema ──────────────────────────────────────────────
 const loginSchema = z.object({
