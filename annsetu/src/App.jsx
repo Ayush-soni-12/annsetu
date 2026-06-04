@@ -9,6 +9,7 @@ import Donate from "./pages/Donate";
 import HowIt from "./pages/HowIt";
 import About from "./pages/About";
 import Dashboard from "./pages/Dashboard";
+import History from "./pages/History";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const App = () => {
@@ -47,6 +48,14 @@ const App = () => {
         element={
           <ProtectedRoute>
             <Donate />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/history"
+        element={
+          <ProtectedRoute>
+            <History />
           </ProtectedRoute>
         }
       />
