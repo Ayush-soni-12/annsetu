@@ -99,3 +99,38 @@ exports.getDonationById = async (req, res) => {
     });
   }
 };
+
+// GET /api/donations/stats — Get personal impact stats for the logged-in donor
+exports.getMyStats = async (req, res) => {
+  try {
+    const donations = await Donation.find({ donor: req.user.id });
+
+    const totalDonations = donations.length;
+
+    // Sum up all meals across every donation
+    const totalMeals = donations.reduce((sum, d) => sum + (d.serves || 0), 0);
+
+    // Count only donations that have been fully delivered
+    const deliveredCount = donations.filter(
+      (d) => d.status === "DELIVERED"
+    ).length;
+
+    // Environmental impact: ~2.5 kg CO₂ saved per meal rescued from waste
+    const co2Saved = parseFloat((totalMeals * 2.5).toFixed(1));
+
+    return res.status(200).json({
+      success: true,
+      stats: {
+        totalDonations,
+        totalMeals,
+        deliveredCount,
+        co2Saved,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
