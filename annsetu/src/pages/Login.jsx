@@ -2,15 +2,10 @@ import { motion } from 'framer-motion';
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
-import { z } from "zod";
 import { login as loginAPI } from "../services/api";
 import { useAuth } from "../context/AuthContext";
-
-// ─── Zod schema ──────────────────────────────────────────────
-const loginSchema = z.object({
-  email: z.string().min(1, "Email is required").email("Enter a valid email"),
-  password: z.string().min(1, "Password is required"),
-});
+import { loginSchema } from "../validations/authSchemas";
+import { parseZodErrors } from "../validations/parseZodErrors";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -39,12 +34,8 @@ export default function Login() {
     // Client-side Zod validation first
     const result = loginSchema.safeParse(form);
     if (!result.success) {
-      const errors = {};
-      result.error.issues.forEach((err) => {
-        errors[err.path[0]] = err.message;
-      });
-      setFieldErrors(errors);
-      return; // stop — don't call API
+      setFieldErrors(parseZodErrors(result));
+      return;
     }
 
     loginMutate(form);

@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import DashboardSidebar from "../components/DashboardSidebar";
-import { useQuery } from "@tanstack/react-query";
-import { getMyStats, getMyDonations } from "../services/api";
+import NgoDashboard from "./NgoDashboard";
+import { useMyStats, useMyDonations } from "../hooks/useDonations";
 import {
   UtensilsCrossed,
   HeartHandshake,
@@ -10,6 +10,7 @@ import {
   Plus,
   History,
   Loader2,
+  Building2,
 } from "lucide-react";
 
 // ─── Status badge helper ───────────────────────────────────────
@@ -44,30 +45,12 @@ function SkeletonCard() {
   );
 }
 
-export default function Dashboard() {
+function DonorDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // ── Fetch personal stats ──────────────────────────────────────
-  const {
-    data: statsData,
-    isLoading: statsLoading,
-    isError: statsError,
-  } = useQuery({
-    queryKey: ["myStats"],
-    queryFn: () => getMyStats().then((r) => r.data.stats),
-    staleTime: 1000 * 60, // re-fetch after 1 min
-  });
-
-  // ── Fetch recent donations (last 3) ──────────────────────────
-  const {
-    data: donationsData,
-    isLoading: donationsLoading,
-  } = useQuery({
-    queryKey: ["myDonations-dashboard"],   // different key from History to avoid cache shape conflict
-    queryFn: () => getMyDonations().then((r) => r.data.donations),
-    staleTime: 1000 * 60,
-  });
+  const { data: statsData, isLoading: statsLoading, isError: statsError } = useMyStats();
+  const { data: donationsData, isLoading: donationsLoading } = useMyDonations();
 
   const stats = statsData ?? { totalDonations: 0, totalMeals: 0, deliveredCount: 0, co2Saved: 0 };
   const recentDonations = Array.isArray(donationsData) ? donationsData.slice(0, 3) : [];
@@ -119,7 +102,7 @@ export default function Dashboard() {
         </div>
 
         {/* Hero Banner */}
-        <div className="bg-gradient-to-r from-orange-500 to-red-500 rounded-3xl p-8 text-white flex justify-between items-center mb-8">
+        <div className="bg-linear-to-r from-orange-500 to-red-500 rounded-3xl p-8 text-white flex justify-between items-center mb-8">
           <div>
             <h2 className="text-4xl font-bold">Small Act, Big Impact ❤️</h2>
             <p className="mt-3 text-orange-100">
@@ -213,6 +196,11 @@ export default function Dashboard() {
                         <p className="font-semibold text-gray-800">{d.foodName}</p>
                         <p className="text-sm text-gray-500">
                           {d.serves} meals · {d.foodType}
+                          {d.assignedNgo && (
+                            <span className="ml-2 bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase">
+                              Direct
+                            </span>
+                          )}
                         </p>
                       </div>
                     </div>
@@ -241,6 +229,13 @@ export default function Dashboard() {
                 <History size={20} />
                 View History
               </button>
+              <button
+                onClick={() => navigate("/ngos")}
+                className="w-full border border-gray-200 p-4 rounded-2xl flex items-center gap-3 hover:bg-gray-50 transition-colors text-gray-700 font-medium"
+              >
+                <Building2 size={20} />
+                Browse NGOs
+              </button>
             </div>
 
             {/* Mini impact summary */}
@@ -258,4 +253,14 @@ export default function Dashboard() {
       </main>
     </div>
   );
+}
+
+export default function Dashboard() {
+  const { user } = useAuth();
+
+  if (user?.role === "NGO") {
+    return <NgoDashboard />;
+  }
+  
+  return <DonorDashboard />;
 }

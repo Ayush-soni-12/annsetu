@@ -1,49 +1,19 @@
 import { useState } from "react";
+import { useLocation } from "react-router-dom";
 import DashboardSidebar from "../components/DashboardSidebar";
-import { UploadCloud, MapPin, HelpCircle } from "lucide-react";
-import { useMutation } from "@tanstack/react-query";
-import { createDonation, uploadImage } from "../services/api";
-import { z } from "zod";
+import { UploadCloud, MapPin, HelpCircle, Building2 } from "lucide-react";
+import { useCreateDonation } from "../hooks/useDonations";
+import { useGlobalStats } from "../hooks/useGlobalStats";
+import { uploadImage } from "../services/api";
+import { donationSchema } from "../validations/donationSchema";
+import { parseZodErrors } from "../validations/parseZodErrors";
 
-
-const donationSchema = z.object({
-  donorName: z.string().min(2, "Name must be at least 2 characters"),
-  phone: z
-    .string()
-    .min(10, "Enter a valid 10-digit phone number")
-    .regex(/^\d+$/, "Phone number must contain only digits"),
-  foodName: z.string().min(1, "Food name is required"),
-  foodType: z.enum(["Cooked Food", "Raw Ingredients", "Packaged Food"], {
-    errorMap: () => ({ message: "Please select a food type" }),
-  }),
-  foodCategory: z.enum(["Vegetarian", "Non-Vegetarian", "Vegan"], {
-    errorMap: () => ({ message: "Please select a food category" }),
-  }),
-  quantity: z.string().min(1, "Quantity is required"),
-  serves: z
-    .string()
-    .min(1, "This field is required")
-    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
-      message: "Must be a valid positive number",
-    }),
-  pickupTime: z
-    .string()
-    .min(1, "Pickup date is required")
-    .refine(
-      (val) => {
-        if (!val || val.trim() === "") return false;
-        const date = new Date(val);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        return !isNaN(date.getTime()) && date >= today;
-      },
-      { message: "Pickup date must be today or in the future" }
-    ),
-  address: z.string().min(5, "Please enter a complete address"),
-  instructions: z.string().optional(),
-});
 
 export default function Donate() {
+  const location = useLocation();
+  const preferredNgo = location.state?.preferredNgo;
+  const ngoName = location.state?.ngoName;
+
   const [formData, setFormData] = useState({
     donorName: "",
     phone: "",
@@ -58,9 +28,12 @@ export default function Donate() {
   });
 
   const [fieldErrors, setFieldErrors] = useState({});
+  const [isUploading, setIsUploading] = useState(false);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
-  const [isUploading, setIsUploading] = useState(false);
+
+  // Fetch global stats
+  const { data: globalStats } = useGlobalStats();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -81,8 +54,7 @@ export default function Donate() {
     }
   };
 
-  const { mutate, isPending, isSuccess, isError, error, reset } = useMutation({
-    mutationFn: createDonation,
+  const { mutate, isPending, isSuccess, isError, error, reset } = useCreateDonation({
     onSuccess: () => {
       setFormData({
         donorName: "", phone: "", foodName: "", foodType: "",
@@ -90,6 +62,8 @@ export default function Donate() {
         pickupTime: "", address: "", instructions: "",
       });
       setFieldErrors({});
+      setImageFile(null);
+      setImagePreview(null);
     },
   });
 
@@ -102,11 +76,7 @@ export default function Donate() {
 
     const result = donationSchema.safeParse(formData);
     if (!result.success) {
-      const errors = {};
-      result.error.issues.forEach((issue) => {
-        errors[issue.path[0]] = issue.message;
-      });
-      setFieldErrors(errors);
+      setFieldErrors(parseZodErrors(result));
       return;
     }
 
@@ -123,8 +93,8 @@ export default function Donate() {
         foodImageUrl = uploadRes.data.imageUrl;
       }
 
-      // Submit the donation with the image URL (if any)
-      mutate({ ...formData, foodImageUrl });
+      // Submit the donation with the image URL (if any) and preferred NGO
+      mutate({ ...formData, foodImageUrl, assignedNgo: preferredNgo });
     } catch (err) {
       setFieldErrors((prev) => ({ 
         ...prev, 
@@ -150,6 +120,23 @@ export default function Donate() {
       <main className="flex-1 ml-0 lg:ml-72 min-h-screen overflow-y-auto p-6 md:p-8 bg-[#f8fafc]">
         <div className="w-full max-w-screen-2xl mx-auto">
 
+          {preferredNgo && (
+            <div className="bg-linear-to-r from-orange-500 to-red-500 rounded-xl p-5 text-white mb-6 shadow-sm flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="bg-white/20 p-2.5 rounded-2xl backdrop-blur-sm">
+                  <Building2 size={24} className="text-white" />
+                </div>
+                <div>
+                  <p className="text-orange-100 text-xs font-semibold tracking-widest uppercase mb-0.5">Direct Donation</p>
+                  <p className="font-bold text-lg">Donating to: {ngoName}</p>
+                </div>
+              </div>
+              <p className="hidden sm:block text-sm text-orange-100 bg-black/10 px-4 py-2.5 rounded-xl backdrop-blur-sm">
+                Your donation will bypass the matching pool and go directly to them.
+              </p>
+            </div>
+          )}
+
           {/* Hero Banner */}
           <div className="bg-[#ff7b00] rounded-xl p-8 text-white mb-6 shadow-sm">
             <span className="bg-white/20 px-4 py-1.5 rounded-full text-xs font-semibold tracking-widest uppercase backdrop-blur-sm mb-4 inline-block">
@@ -163,10 +150,10 @@ export default function Donate() {
 
           {/* Stats Row */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <StatCard value="500+" label="Meals Donated" icon="🍴" />
-            <StatCard value="50+" label="NGO Partners" icon="🤝" />
-            <StatCard value="1000+" label="People Helped" icon="👥" />
-            <StatCard value="2.5 Tons" label="Food Waste Prevented" icon="🍃" />
+            <StatCard value={globalStats ? `${globalStats.mealsDonated}+` : "..."} label="Meals Donated" icon="🍴" />
+            <StatCard value={globalStats ? `${globalStats.ngoPartners}+` : "..."} label="NGO Partners" icon="🤝" />
+            <StatCard value={globalStats ? `${globalStats.peopleHelped}+` : "..."} label="People Helped" icon="👥" />
+            <StatCard value={globalStats ? globalStats.wastePrevented : "..."} label="Food Waste Prevented" icon="🍃" />
           </div>
 
           {/* Form + Preview */}
