@@ -75,7 +75,7 @@ export default function DashboardSidebar() {
       <div className="p-4 border-t border-gray-100">
         <button
           onClick={handleLogout}
-          className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-3.5 rounded-2xl flex items-center justify-center gap-2 font-semibold text-sm hover:opacity-90 transition-opacity"
+          className="w-full bg-linear-to-r from-orange-500 to-red-500 text-white py-3.5 rounded-2xl flex items-center justify-center gap-2 font-semibold text-sm hover:opacity-90 transition-opacity"
         >
           <LogOut size={18} />
           Logout

@@ -16,13 +16,24 @@ API.interceptors.request.use((config) => {
 
 // ─── Auth APIs ────────────────────────────────────────────────
 export const signup = (data) => API.post("/auth/signup", data);
+export const signupNgo = (data) => API.post("/auth/signup/ngo", data);
 export const login = (data) => API.post("/auth/login", data);
 export const getMe = () => API.get("/auth/me");
+
+// ─── NGO APIs ─────────────────────────────────────────────────
+export const getAllNgos = (params) => API.get("/ngos", { params });   // ?city=Delhi
+export const getNgoById = (id) => API.get(`/ngos/${id}`);
+export const getMyNgoProfile = () => API.get("/ngos/my-profile");
+export const updateMyNgoProfile = (data) => API.put("/ngos/my-profile", data);
+export const getNgoDonations = () => API.get("/ngos/donations");
 
 // ─── Donation APIs ────────────────────────────────────────────
 export const createDonation = (data) => API.post("/donations", data);
 export const getMyDonations = () => API.get("/donations/my");
 export const getMyStats = () => API.get("/donations/stats");
+
+// ─── Global Stats ─────────────────────────────────────────────
+export const getGlobalStats = () => API.get("/stats");
 export const getDonationById = (id) => API.get(`/donations/${id}`);
 export const uploadImage = (formData) => API.post("/upload", formData, {
   headers: { "Content-Type": "multipart/form-data" }
