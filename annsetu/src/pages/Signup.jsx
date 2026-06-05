@@ -2,16 +2,10 @@ import { motion } from 'framer-motion';
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
-import { z } from "zod";
 import { signup as signupAPI } from "../services/api";
 import { useAuth } from "../context/AuthContext";
-
-// ─── Zod schema ──────────────────────────────────────────────
-const signupSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().min(1, "Email is required").email("Enter a valid email"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-});
+import { signupSchema } from "../validations/authSchemas";
+import { parseZodErrors } from "../validations/parseZodErrors";
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -44,12 +38,7 @@ export default function Signup() {
     // Client-side Zod validation first
     const result = signupSchema.safeParse(form);
     if (!result.success) {
-      const errors = {};
-      result.error.issues.forEach((err) => {
-        errors[err.path[0]] = err.message;
-      });
-
-      setFieldErrors(errors);
+      setFieldErrors(parseZodErrors(result));
       return;
     }
 
@@ -148,6 +137,13 @@ export default function Signup() {
           Already have an account?{" "}
           <Link to="/login" className="text-orange-500 hover:underline">
             Login
+          </Link>
+        </p>
+
+        <p className="text-center text-sm text-gray-500 mt-2">
+          Are you an NGO?{" "}
+          <Link to="/signup/ngo" className="text-orange-500 hover:underline">
+            Register your NGO
           </Link>
         </p>
       </motion.div>

@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { getMyDonations } from "../services/api";
+import { useMyDonations, useNgoDonations } from "../hooks/useDonations";
 import DashboardSidebar from "../components/DashboardSidebar";
 import { useAuth } from "../context/AuthContext";
 import { Clock, CheckCircle, Truck, Package, XCircle, Loader2, UtensilsCrossed, Filter, ChevronRight, Calendar, MapPin } from "lucide-react";
@@ -54,15 +53,15 @@ export default function History() {
   const { user } = useAuth();
   const [filter, setFilter] = useState("ALL"); // ALL, ACTIVE, PAST
 
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: ["myDonations"],
-    queryFn: () => getMyDonations().then((res) => res.data),
-  });
+  const isNgo = user?.role === "NGO";
 
-  const donations = data?.donations || [];
+  const donorQuery  = useMyDonations();
+  const ngoQuery    = useNgoDonations();
+  const { data: donations = [], isLoading, isError, error } = isNgo ? ngoQuery : donorQuery;
 
   // Summary stats derived from the list
   const totalMeals = donations.reduce((sum, d) => sum + (d.serves || 0), 0);
+  // eslint-disable-next-line no-unused-vars
   const delivered = donations.filter((d) => d.status === "DELIVERED").length;
   const active = donations.filter((d) => ["PENDING", "ASSIGNED", "PICKED_UP"].includes(d.status)).length;
 
@@ -143,7 +142,7 @@ export default function History() {
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ duration: 0.3, delay: index * 0.05 }}
                   >
-                    <DonationCard donation={donation} />
+                    <DonationCard donation={donation} userRole={user?.role} />
                   </motion.div>
                 ))}
               </AnimatePresence>
@@ -157,7 +156,7 @@ export default function History() {
 }
 
 // ─── Donation Card ────────────────────────────────────────────
-function DonationCard({ donation }) {
+function DonationCard({ donation, userRole }) {
   const status = STATUS_CONFIG[donation.status] || STATUS_CONFIG.PENDING;
   const StatusIcon = status.icon;
 
@@ -185,7 +184,7 @@ function DonationCard({ donation }) {
               onError={(e) => { e.target.style.display = "none"; }}
             />
           ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-orange-50 to-orange-100/50 text-orange-300">
+            <div className="w-full h-full flex flex-col items-center justify-center bg-linear-to-br from-orange-50 to-orange-100/50 text-orange-300">
               <UtensilsCrossed size={40} />
             </div>
           )}
@@ -205,7 +204,24 @@ function DonationCard({ donation }) {
                 <Calendar size={14} className="mr-1" /> {createdAt}
               </span>
             </div>
-            <p className="text-sm font-medium text-gray-500 mb-4">{donation.foodType} &nbsp;•&nbsp; {donation.foodCategory}</p>
+            <div className="flex items-center flex-wrap gap-3 mb-4">
+              <p className="text-sm font-medium text-gray-500">
+                {donation.foodType} &nbsp;•&nbsp; {donation.foodCategory}
+              </p>
+              {userRole === "NGO" ? (
+                donation.donorName && (
+                  <span className="text-xs font-bold text-green-600 bg-green-50 border border-green-100 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
+                    🎁 Donated by: {donation.donorName}
+                  </span>
+                )
+              ) : (
+                donation.assignedNgo && (
+                  <span className="text-xs font-bold text-orange-600 bg-orange-50 border border-orange-100 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
+                    🏢 Assigned to: {donation.assignedNgo.orgName}
+                  </span>
+                )
+              )}
+            </div>
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
               <StatBlock label="Quantity" value={donation.quantity} />
@@ -252,7 +268,7 @@ function SummaryCard({ icon, label, value, color }) {
   };
 
   return (
-    <div className={`rounded-3xl bg-gradient-to-br ${colors[color]} text-white p-6 shadow-lg flex items-center gap-5 relative overflow-hidden`}>
+    <div className={`rounded-3xl bg-linear-to-br ${colors[color]} text-white p-6 shadow-lg flex items-center gap-5 relative overflow-hidden`}>
       <div className="absolute -right-4 -top-4 text-white/10 text-8xl pointer-events-none">
         {icon}
       </div>

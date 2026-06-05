@@ -40,12 +40,10 @@ function Navbar() {
             About
             <span className="absolute left-0 -bottom-1 w-0 h-[2px] bg-[#FF9933] transition-all duration-300 group-hover:w-full" />
           </NavLink>
-          {["NGOs", "Impact"].map((item) => (
-            <a key={item} href="#" className="relative group cursor-pointer">
-              {item}
-              <span className="absolute left-0 -bottom-1 w-0 h-[2px] bg-[#FF9933] transition-all duration-300 group-hover:w-full" />
-            </a>
-          ))}
+          <NavLink to="/ngos" className="relative group cursor-pointer">
+            NGOs
+            <span className="absolute left-0 -bottom-1 w-0 h-[2px] bg-[#FF9933] transition-all duration-300 group-hover:w-full" />
+          </NavLink>
         </div>
 
         {/* RIGHT — changes based on auth state */}
@@ -99,11 +97,9 @@ function Navbar() {
             <NavLink to="/about" className="text-[#8B0000] font-medium" onClick={() => setMenuOpen(false)}>
               About
             </NavLink>
-            {["NGOs", "Impact"].map((item) => (
-              <a key={item} href="#" className="text-[#8B0000] font-medium">
-                {item}
-              </a>
-            ))}
+            <NavLink to="/ngos" className="text-[#8B0000] font-medium" onClick={() => setMenuOpen(false)}>
+              NGOs
+            </NavLink>
 
             {isAuthenticated ? (
               <>

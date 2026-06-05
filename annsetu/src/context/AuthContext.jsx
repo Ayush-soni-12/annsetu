@@ -1,10 +1,12 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
+  const queryClient = useQueryClient();
 
   // On first load, restore auth from localStorage
   useEffect(() => {
@@ -29,6 +31,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("user");
     setToken(null);
     setUser(null);
+    queryClient.clear();
   };
 
   return (
