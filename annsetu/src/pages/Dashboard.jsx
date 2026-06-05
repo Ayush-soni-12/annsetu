@@ -110,7 +110,10 @@ export default function Dashboard() {
                 <Plus />
                 Donate Food
               </button>
-              <button className="w-full border border-gray-200 p-4 rounded-2xl hover:bg-gray-50 transition-colors">
+              <button
+                onClick={() => navigate("/history")}
+                className="w-full border border-gray-200 p-4 rounded-2xl hover:bg-gray-50 transition-colors"
+              >
                 View History
               </button>
             </div>

@@ -9,6 +9,7 @@ import Donate from "./pages/Donate";
 import HowIt from "./pages/HowIt";
 import About from "./pages/About";
 import Dashboard from "./pages/Dashboard";
+import History from "./pages/History";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const App = () => {
@@ -25,15 +26,19 @@ const App = () => {
         {/* Redirect logged-in users away from login/signup */}
         <Route
           path="/login"
-          element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />}
+          element={
+            isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
+          }
         />
         <Route
           path="/signup"
-          element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Signup />}
+          element={
+            isAuthenticated ? <Navigate to="/dashboard" replace /> : <Signup />
+          }
         />
       </Route>
 
-      {/* Dashboard & Donate — outside Navbar layout */}
+      {/* Dashboard, Donate & History — outside Navbar layout */}
       <Route
         path="/dashboard"
         element={
@@ -47,6 +52,14 @@ const App = () => {
         element={
           <ProtectedRoute>
             <Donate />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/history"
+        element={
+          <ProtectedRoute>
+            <History />
           </ProtectedRoute>
         }
       />

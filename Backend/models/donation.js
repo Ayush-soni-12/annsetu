@@ -5,7 +5,7 @@ const donationSchema = new mongoose.Schema(
     // Who donated (linked to logged-in user)
     donor: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "User",  
       required: true,
     },
 
