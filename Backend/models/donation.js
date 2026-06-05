@@ -76,6 +76,12 @@ const donationSchema = new mongoose.Schema(
       enum: ["PENDING", "ASSIGNED", "PICKED_UP", "DELIVERED", "CANCELLED"],
       default: "PENDING",
     },
+
+    // Link to NGO (optional until assigned)
+    assignedNgo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "NgoProfile",
+    },
   },
   { timestamps: true }
 );
