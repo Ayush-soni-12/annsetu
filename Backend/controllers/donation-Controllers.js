@@ -15,6 +15,7 @@ exports.createDonation = async (req, res) => {
       address,
       instructions,
       foodImageUrl,
+      assignedNgo,
     } = req.body;
 
     const donation = await Donation.create({
@@ -30,6 +31,10 @@ exports.createDonation = async (req, res) => {
       address,
       instructions: instructions || "",
       ...(foodImageUrl && { foodImageUrl }),
+      ...(assignedNgo && { 
+        assignedNgo, 
+        status: "ASSIGNED" // Automatically move to ASSIGNED if directly given to an NGO
+      }),
     });
 
     return res.status(201).json({
@@ -48,9 +53,9 @@ exports.createDonation = async (req, res) => {
 // GET /api/donations/my — Get all donations by the logged-in user
 exports.getMyDonations = async (req, res) => {
   try {
-    const donations = await Donation.find({ donor: req.user.id }).sort({
-      createdAt: -1,
-    });
+    const donations = await Donation.find({ donor: req.user.id })
+      .populate("assignedNgo", "orgName logoUrl contactPhone")
+      .sort({ createdAt: -1 });
 
     return res.status(200).json({
       success: true,
