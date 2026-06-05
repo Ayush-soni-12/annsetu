@@ -39,6 +39,48 @@ const signupSchema = z.object({
   password: z
     .string({ required_error: "Password is required" })
     .min(6, "Password must be at least 6 characters"),
+
+  // Optional role — defaults to DONOR on backend if not sent
+  role: z.enum(["DONOR", "NGO"]).optional(),
+});
+
+// Extended schema for NGO registration
+const ngoSignupSchema = z.object({
+  // User fields
+  name: z.string().trim().min(2, "Contact person name required"),
+  email: z.string().trim().toLowerCase().email("Enter a valid email"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  role: z.literal("NGO"),
+
+  // NGO profile fields
+  orgName: z.string().trim().min(2, "Organisation name is required"),
+  description: z.string().trim().optional().default(""),
+  registrationNo: z.string().trim().optional().default(""),
+  address: z.string().trim().min(5, "Full address is required"),
+  city: z.string().trim().min(2, "City is required"),
+  state: z.string().trim().optional().default(""),
+  pincode: z.string().trim().optional().default(""),
+  contactPhone: z
+    .string()
+    .trim()
+    .min(10, "Enter a valid phone number"),
+  website: z.string().trim().optional().default(""),
+  capacityMeals: z
+    .union([z.string(), z.number()])
+    .transform(Number)
+    .refine((v) => v > 0, { message: "Capacity must be a positive number" })
+    .optional()
+    .default(50),
+  acceptedFoodTypes: z
+    .array(z.enum(["Cooked Food", "Raw Ingredients", "Packaged Food"]))
+    .optional()
+    .default(["Cooked Food", "Raw Ingredients", "Packaged Food"]),
+  dietaryPref: z
+    .array(z.enum(["Vegetarian", "Non-Vegetarian", "Vegan"]))
+    .optional()
+    .default(["Vegetarian"]),
+  operatingHours: z.string().trim().optional().default("9AM - 6PM"),
+  focusArea: z.string().trim().optional().default("All"),
 });
 
 const loginSchema = z.object({
@@ -101,11 +143,14 @@ const donationSchema = z.object({
   instructions: z.string().trim().optional().default(""),
   
   foodImageUrl: z.string().url("Must be a valid URL").optional(),
+  
+  assignedNgo: z.string().trim().optional(),
 });
 
 module.exports = {
   validate,
   signupSchema,
+  ngoSignupSchema,
   loginSchema,
   donationSchema,
 };
