@@ -1,5 +1,6 @@
 const Donation = require("../models/donation");
-
+const User = require("../models/user"); // needed to fetch donor email
+const { sendDonationConfirmation } = require("../services/emailService");
 // POST /api/donations — Create a new donation
 exports.createDonation = async (req, res) => {
   try {
@@ -36,6 +37,12 @@ exports.createDonation = async (req, res) => {
         status: "ASSIGNED" // Automatically move to ASSIGNED if directly given to an NGO
       }),
     });
+
+    // Fetch the donor to get their email address
+    const donorUser = await User.findById(req.user.id);
+    if (donorUser) {
+      sendDonationConfirmation(donorUser.email, donorName, foodName, serves);
+    }
 
     return res.status(201).json({
       success: true,
