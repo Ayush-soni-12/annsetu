@@ -39,4 +39,7 @@ export const uploadImage = (formData) => API.post("/upload", formData, {
   headers: { "Content-Type": "multipart/form-data" }
 });
 
+// ─── AI APIs ──────────────────────────────────────────────────
+export const analyzeFoodSafety = (data) => API.post("/ai/food-safety", data);
+
 export default API;

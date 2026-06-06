@@ -17,6 +17,9 @@ exports.createDonation = async (req, res) => {
       instructions,
       foodImageUrl,
       assignedNgo,
+      safetyScore,
+      safetyVerdict,
+      safetyNotes,
     } = req.body;
 
     const donation = await Donation.create({
@@ -36,6 +39,9 @@ exports.createDonation = async (req, res) => {
         assignedNgo, 
         status: "ASSIGNED" // Automatically move to ASSIGNED if directly given to an NGO
       }),
+      ...(safetyScore && { safetyScore }),
+      ...(safetyVerdict && { safetyVerdict }),
+      ...(safetyNotes && { safetyNotes }),
     });
 
     // Fetch the donor to get their email address

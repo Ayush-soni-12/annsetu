@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import DashboardSidebar from "../components/DashboardSidebar";
-import { UploadCloud, MapPin, HelpCircle, Building2 } from "lucide-react";
+import { UploadCloud, MapPin, HelpCircle, Building2, Bot, AlertTriangle, CheckCircle, ShieldAlert } from "lucide-react";
 import { useCreateDonation } from "../hooks/useDonations";
 import { useGlobalStats } from "../hooks/useGlobalStats";
-import { uploadImage } from "../services/api";
+import { uploadImage, analyzeFoodSafety } from "../services/api";
 import { donationSchema } from "../validations/donationSchema";
 import { parseZodErrors } from "../validations/parseZodErrors";
 
@@ -31,6 +32,9 @@ export default function Donate() {
   const [isUploading, setIsUploading] = useState(false);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  
+  // AI State
+  const [aiAnalysis, setAiAnalysis] = useState(null); // { loading: boolean, data: { verdict, score, notes }, error: string }
 
   // Fetch global stats
   const { data: globalStats } = useGlobalStats();
@@ -51,6 +55,7 @@ export default function Donate() {
       setImageFile(file);
       setImagePreview(URL.createObjectURL(file));
       setFieldErrors((prev) => ({ ...prev, image: undefined }));
+      setAiAnalysis(null); // Reset AI state when new image selected
     }
   };
 
@@ -64,6 +69,7 @@ export default function Donate() {
       setFieldErrors({});
       setImageFile(null);
       setImagePreview(null);
+      setAiAnalysis(null);
     },
   });
 
@@ -82,6 +88,7 @@ export default function Donate() {
 
     try {
       let foodImageUrl = undefined;
+      let aiFields = {};
       
       // If the user selected an image, upload it first
       if (imageFile) {
@@ -91,10 +98,39 @@ export default function Donate() {
         
         const uploadRes = await uploadImage(imgData);
         foodImageUrl = uploadRes.data.imageUrl;
+        
+        // --- Run AI Food Safety Check ---
+        try {
+          setAiAnalysis({ loading: true });
+          const aiRes = await analyzeFoodSafety({ 
+            imageUrl: foodImageUrl, 
+            foodName: formData.foodName, 
+            foodType: formData.foodType 
+          });
+          
+          if (aiRes.data && aiRes.data.analysis) {
+            const { verdict, safetyScore, notes } = aiRes.data.analysis;
+            setAiAnalysis({ loading: false, data: { verdict, safetyScore, notes } });
+            aiFields = { safetyScore, safetyVerdict: verdict, safetyNotes: notes };
+            
+            // Block submission if AI detects severe issues or no food
+            if (verdict === "REJECT") {
+              setFieldErrors((prev) => ({ 
+                ...prev, 
+                image: "AI rejected this image: " + notes 
+              }));
+              setIsUploading(false);
+              return; // Stop the submission completely
+            }
+          }
+        } catch (aiErr) {
+          console.error("AI Check failed, continuing anyway", aiErr);
+          setAiAnalysis({ loading: false, error: "AI check unavailable right now." });
+        }
       }
 
-      // Submit the donation with the image URL (if any) and preferred NGO
-      mutate({ ...formData, foodImageUrl, assignedNgo: preferredNgo });
+      // Submit the donation with the image URL (if any), preferred NGO, and AI analysis
+      mutate({ ...formData, foodImageUrl, assignedNgo: preferredNgo, ...aiFields });
     } catch (err) {
       setFieldErrors((prev) => ({ 
         ...prev, 
@@ -224,20 +260,77 @@ export default function Donate() {
                   />
                 </div>
 
-                {/* Image Upload */}
+                {/* Image Upload & AI Safety Check */}
                 <div className="flex flex-col">
-                  <label className="text-xs font-semibold text-gray-600 mb-1.5">Food Image (Optional)</label>
-                  <label className={`border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer transition ${fieldErrors.image ? "border-red-400 bg-red-50" : "border-gray-200 hover:bg-gray-50 hover:border-[#ff7b00]"}`}>
+                  <label className="text-xs font-semibold text-gray-600 mb-1.5">Food Image (Optional but Recommended)</label>
+                  <label className={`border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer transition relative overflow-hidden ${fieldErrors.image ? "border-red-400 bg-red-50" : "border-gray-200 hover:bg-gray-50 hover:border-[#ff7b00]"}`}>
                     <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
-                    <UploadCloud size={28} className={fieldErrors.image ? "text-red-400 mb-2" : "text-gray-400 mb-2"} />
-                    <span className="text-sm font-medium text-gray-700">
-                      {imageFile ? imageFile.name : "Click to upload an image"}
-                    </span>
-                    <span className="text-xs text-gray-400 mt-1">PNG, JPG up to 5MB</span>
+                    
+                    {imagePreview ? (
+                      <div className="absolute inset-0 w-full h-full">
+                        <img src={imagePreview} alt="Preview" className="w-full h-full object-cover opacity-30" />
+                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/70 backdrop-blur-xs">
+                          <CheckCircle className="text-green-500 mb-2" size={28} />
+                          <span className="text-sm font-bold text-gray-800">Image Selected</span>
+                          <span className="text-xs text-gray-600 mt-1 hover:text-orange-500 underline">Click to change</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <UploadCloud size={28} className={fieldErrors.image ? "text-red-400 mb-2" : "text-gray-400 mb-2"} />
+                        <span className="text-sm font-medium text-gray-700">
+                          Click to upload an image
+                        </span>
+                        <span className="text-xs text-gray-400 mt-1">PNG, JPG up to 5MB</span>
+                      </>
+                    )}
                   </label>
                   {fieldErrors.image && (
                     <p className="text-red-500 text-xs mt-1">{fieldErrors.image}</p>
                   )}
+                  
+                  {/* AI Safety Banner */}
+                  <AnimatePresence>
+                    {(aiAnalysis?.loading || aiAnalysis?.data || aiAnalysis?.error) && (
+                       <motion.div 
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          className="mt-3 overflow-hidden"
+                       >
+                         {aiAnalysis.loading && (
+                            <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 flex items-center gap-3">
+                              <Bot className="text-blue-500 animate-pulse" size={20} />
+                              <span className="text-sm text-blue-700 font-medium">AI is inspecting food safety...</span>
+                            </div>
+                         )}
+                         
+                         {aiAnalysis.error && (
+                            <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm text-gray-600">
+                              {aiAnalysis.error}
+                            </div>
+                         )}
+
+                         {aiAnalysis.data && (
+                            <div className={`rounded-xl p-4 border ${
+                              aiAnalysis.data.verdict === "SAFE" ? "bg-green-50 border-green-200 text-green-800" :
+                              aiAnalysis.data.verdict === "CAUTION" ? "bg-yellow-50 border-yellow-200 text-yellow-800" :
+                              "bg-red-50 border-red-200 text-red-800"
+                            }`}>
+                              <div className="flex items-center gap-2 mb-2">
+                                {aiAnalysis.data.verdict === "SAFE" && <CheckCircle size={18} />}
+                                {aiAnalysis.data.verdict === "CAUTION" && <AlertTriangle size={18} />}
+                                {aiAnalysis.data.verdict === "REJECT" && <ShieldAlert size={18} />}
+                                <h4 className="font-bold text-sm">AI Food Safety Inspector</h4>
+                                <span className="ml-auto text-xs font-black opacity-80">SCORE: {aiAnalysis.data.safetyScore}/100</span>
+                              </div>
+                              <p className="text-xs opacity-90 leading-relaxed">
+                                {aiAnalysis.data.notes}
+                              </p>
+                            </div>
+                         )}
+                       </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 {isSuccess && (
@@ -253,11 +346,19 @@ export default function Donate() {
 
                 <button
                   type="submit"
-                  disabled={isPending || isUploading}
-                  className="w-full bg-[#ff7b00] text-white font-bold py-4 rounded-xl shadow-md hover:bg-[#e66a00] active:scale-[0.98] transition-all mt-2 text-sm tracking-wide disabled:opacity-60 disabled:cursor-not-allowed"
+                  disabled={isPending || isUploading || aiAnalysis?.loading}
+                  className="w-full bg-linear-to-r from-orange-500 to-red-500 text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition disabled:opacity-70 flex items-center justify-center gap-2"
                 >
-                  {(isPending || isUploading) ? "Submitting..." : "♡ \u00a0Donate Food Now"}
+                  {(isPending || isUploading || aiAnalysis?.loading) ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      {aiAnalysis?.loading ? "Analyzing Image..." : isUploading ? "Uploading Image..." : "Submitting..."}
+                    </>
+                  ) : (
+                    "Submit Donation"
+                  )}
                 </button>
+
                 <p className="text-center text-[11px] text-gray-400 mt-3 tracking-wide">🔒 &nbsp;Your information is safe and will never be shared.</p>
               </form>
             </div>

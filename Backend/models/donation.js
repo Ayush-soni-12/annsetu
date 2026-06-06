@@ -77,6 +77,18 @@ const donationSchema = new mongoose.Schema(
       default: "PENDING",
     },
 
+    // AI Food Safety Analysis
+    safetyScore: {
+      type: Number,
+    },
+    safetyVerdict: {
+      type: String,
+      enum: ["SAFE", "CAUTION", "REJECT"],
+    },
+    safetyNotes: {
+      type: String,
+    },
+
     // Link to NGO (optional until assigned)
     assignedNgo: {
       type: mongoose.Schema.Types.ObjectId,
