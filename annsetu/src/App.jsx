@@ -11,6 +11,9 @@ import HowIt from "./pages/HowIt";
 import About from "./pages/About";
 import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
+import NgoDirectory from "./pages/NgoDirectory";
+import NgoProfileView from "./pages/NgoProfileView";
+import History from "./pages/History";
 
 const App = () => {
   const { isAuthenticated } = useAuth();
@@ -58,6 +61,14 @@ const App = () => {
         element={
           <ProtectedRoute>
             <Donate />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/history"
+        element={
+          <ProtectedRoute>
+            <History />
           </ProtectedRoute>
         }
       />
