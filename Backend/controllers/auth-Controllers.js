@@ -2,6 +2,7 @@ const User = require("../models/user");
 const NgoProfile = require("../models/ngoProfile");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { sendWelcomeEmail, sendNgoWelcomeEmail } = require("../services/emailService");
 
 exports.signup = async (req, res) => {
   try {
@@ -47,7 +48,7 @@ exports.signup = async (req, res) => {
         dietaryPref: ngoFields.dietaryPref || ["Vegetarian"],
         operatingHours: ngoFields.operatingHours || "9AM - 6PM",
         focusArea: ngoFields.focusArea || "All",
-        verified: true,   // TODO: set to false once admin dashboard is built
+        verified: false,
       });
     }
 
@@ -57,6 +58,13 @@ exports.signup = async (req, res) => {
       process.env.JWT_SECRET_KEY,
       { expiresIn: "7d" }
     );
+
+    // Send async email notification (fire-and-forget)
+    if (role === "NGO") {
+      sendNgoWelcomeEmail(user.email, ngoFields.orgName);
+    } else {
+      sendWelcomeEmail(user.email, user.name);
+    }
 
     user.password = undefined;
 

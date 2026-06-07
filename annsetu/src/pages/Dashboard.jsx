@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import DashboardSidebar from "../components/DashboardSidebar";
 import NgoDashboard from "./NgoDashboard";
@@ -253,6 +253,10 @@ function DonorDashboard() {
 
 export default function Dashboard() {
   const { user } = useAuth();
+
+  if (user?.role === "ADMIN") {
+    return <Navigate to="/admin" replace />;
+  }
 
   if (user?.role === "NGO") {
     return <NgoDashboard />;

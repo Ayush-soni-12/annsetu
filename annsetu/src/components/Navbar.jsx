@@ -57,6 +57,14 @@ function Navbar() {
               >
                 👋 {user?.name?.split(" ")[0]}
               </NavLink>
+              {user?.role === 'ADMIN' && (
+                <NavLink
+                  to="/admin"
+                  className="text-[#8B0000] font-medium hover:text-[#FF9933] transition ml-2 border border-[#8B0000] px-3 py-1 rounded-full text-sm"
+                >
+                  Admin Panel
+                </NavLink>
+              )}
               <button
                 onClick={handleLogout}
                 className="text-sm text-gray-500 hover:text-red-500 transition border border-gray-200 px-4 py-2 rounded-full"
@@ -106,6 +114,11 @@ function Navbar() {
                 <NavLink to="/dashboard" className="text-[#8B0000] font-medium" onClick={() => setMenuOpen(false)}>
                   My Dashboard
                 </NavLink>
+                {user?.role === 'ADMIN' && (
+                  <NavLink to="/admin" className="text-[#FF9933] font-bold" onClick={() => setMenuOpen(false)}>
+                    Admin Panel
+                  </NavLink>
+                )}
                 <button onClick={handleLogout} className="text-red-500 font-medium">
                   Logout
                 </button>

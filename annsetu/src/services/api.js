@@ -39,4 +39,14 @@ export const uploadImage = (formData) => API.post("/upload", formData, {
   headers: { "Content-Type": "multipart/form-data" }
 });
 
+// ─── AI APIs ──────────────────────────────────────────────────
+export const analyzeFoodSafety = (data) => API.post("/ai/food-safety", data);
+
+// ─── Admin APIs ───────────────────────────────────────────────
+export const getAdminUsers = () => API.get("/admin/users");
+export const getAdminNgos = () => API.get("/admin/ngos");
+export const approveAdminNgo = (id) => API.put(`/admin/ngos/${id}/approve`);
+export const getAdminDonations = () => API.get("/admin/donations");
+export const updateAdminDonationStatus = (id, data) => API.put(`/admin/donations/${id}/status`, data);
+
 export default API;

@@ -14,6 +14,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import NgoDirectory from "./pages/NgoDirectory";
 import NgoProfileView from "./pages/NgoProfileView";
 import History from "./pages/History";
+import AdminDashboard from "./pages/AdminDashboard";
 
 const App = () => {
   const { isAuthenticated } = useAuth();
@@ -69,6 +70,14 @@ const App = () => {
         element={
           <ProtectedRoute>
             <History />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute>
+            <AdminDashboard />
           </ProtectedRoute>
         }
       />
