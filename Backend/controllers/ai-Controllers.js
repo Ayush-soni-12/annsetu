@@ -172,3 +172,101 @@ Return ONLY the raw JSON object. Do not wrap it in markdown code blocks.`;
     });
   }
 };
+
+const NgoProfile = require("../models/ngoProfile");
+
+exports.matchDonation = async (req, res) => {
+  try {
+    console.log("=== AI Smart Donation Matching Started ===");
+    const { foodType, foodCategory, serves, address } = req.body;
+
+    if (!address || !serves || !foodType || !foodCategory) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Missing required fields: address, serves, foodType, foodCategory" 
+      });
+    }
+
+    const hasGemini = process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== "dummy";
+    const hasOpenRouter = process.env.OPENROUTER_API_KEY && process.env.OPENROUTER_API_KEY !== "dummy";
+
+    if (!hasGemini && !hasOpenRouter) {
+      return res.status(500).json({ success: false, message: "No AI API Keys found" });
+    }
+
+    // 1. PRE-FILTER: Ask the database for NGOs that match the strict rules
+    // Rule: Must be verified, must have capacity, must accept food type & category
+    const eligibleNgos = await NgoProfile.find({
+      verified: true, // Only match with verified NGOs
+      capacityMeals: { $gte: Number(serves) }, // NGO must have enough capacity
+      acceptedFoodTypes: foodType,             // NGO must accept "Cooked Food" etc.
+      dietaryPref: foodCategory                // NGO must accept "Vegetarian" etc.
+    }).select("_id orgName address city capacityMeals"); // Only fetch what AI needs
+
+    if (!eligibleNgos || eligibleNgos.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No verified NGOs found matching this capacity and food type right now."
+      });
+    }
+
+    // 2. AI GEOGRAPHIC MATCHING: Ask AI to find the closest NGO
+    const prompt = `You are Annsetu's AI logistics coordinator. 
+A donor is donating food from this pickup address: "${address}".
+
+Here is a list of pre-filtered NGOs that have the capacity and accept this food type:
+${JSON.stringify(eligibleNgos)}
+
+Your job is to determine which NGO is geographically closest to the donor's address.
+Return ONLY a raw JSON object strictly matching this format (no markdown fences):
+{
+  "bestMatchNgoId": "<the _id string of the chosen NGO>",
+  "bestMatchName": "<orgName of the chosen NGO>",
+  "matchScore": <a number 0-100 representing confidence in the distance match>,
+  "reason": "<A 1-sentence explanation of why this NGO is the best location match>"
+}`;
+
+    let responseText = "";
+
+    // Run via Gemini (Preferred for speed/free tier)
+    if (hasGemini) {
+      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+      const model = genAI.getGenerativeModel({ 
+        model: "gemini-2.5-flash",
+        generationConfig: { responseMimeType: "application/json" }
+      });
+      const result = await model.generateContent(prompt);
+      responseText = result.response.text();
+    } 
+    // Run via OpenRouter fallback
+    else {
+      const VISION_MODEL = process.env.OPENROUTER_VISION_MODEL || "openrouter/free";
+      const openai = new OpenAI({
+        apiKey: process.env.OPENROUTER_API_KEY,
+        baseURL: "https://openrouter.ai/api/v1",
+      });
+      const response = await openai.chat.completions.create({
+        model: VISION_MODEL,
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0,
+      });
+      responseText = response.choices[0].message.content.trim();
+    }
+
+    const cleanedText = responseText.replace(/```json/g, "").replace(/```/g, "").trim();
+    const matchData = JSON.parse(cleanedText);
+
+    console.log("AI Match Complete:", matchData);
+    return res.status(200).json({
+      success: true,
+      match: matchData
+    });
+
+  } catch (error) {
+    console.error("AI Matching Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to match donation: " + error.message,
+    });
+  }
+};
