@@ -5,7 +5,7 @@ import DashboardSidebar from "../components/DashboardSidebar";
 import { UploadCloud, MapPin, HelpCircle, Building2, Bot, AlertTriangle, CheckCircle, ShieldAlert } from "lucide-react";
 import { useCreateDonation } from "../hooks/useDonations";
 import { useGlobalStats } from "../hooks/useGlobalStats";
-import { uploadImage, analyzeFoodSafety } from "../services/api";
+import { uploadImage, analyzeFoodSafety, matchDonation } from "../services/api";
 import { donationSchema } from "../validations/donationSchema";
 import { parseZodErrors } from "../validations/parseZodErrors";
 
@@ -35,6 +35,7 @@ export default function Donate() {
   
   // AI State
   const [aiAnalysis, setAiAnalysis] = useState(null); // { loading: boolean, data: { verdict, score, notes }, error: string }
+  const [aiMatch, setAiMatch] = useState(null); // { loading: boolean, data: { name, reason }, error: string }
 
   // Fetch global stats
   const { data: globalStats } = useGlobalStats();
@@ -43,6 +44,7 @@ export default function Donate() {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
+    if (isSuccess) reset(); // Clear success message on new typing
   };
 
   const handleImageChange = (e) => {
@@ -69,16 +71,14 @@ export default function Donate() {
       setFieldErrors({});
       setImageFile(null);
       setImagePreview(null);
-      setAiAnalysis(null);
+      // We keep aiMatch so the user can read it!
     },
   });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    reset();
     setFieldErrors({});
-    setImageFile(null);
-    setImagePreview(null);
+    setAiMatch(null); // Reset match state on new submission
 
     const result = donationSchema.safeParse(formData);
     if (!result.success) {
@@ -129,8 +129,32 @@ export default function Donate() {
         }
       }
 
+      // --- Run AI Match Engine ---
+      let assignedNgoId = preferredNgo; // default to preferred if they used Direct Donation
+      
+      if (!preferredNgo) {
+        try {
+          setAiMatch({ loading: true });
+          const matchRes = await matchDonation({
+            foodType: formData.foodType,
+            foodCategory: formData.foodCategory,
+            serves: formData.serves,
+            address: formData.address
+          });
+          
+          if (matchRes.data && matchRes.data.match) {
+            const { bestMatchNgoId, bestMatchName, reason } = matchRes.data.match;
+            assignedNgoId = bestMatchNgoId;
+            setAiMatch({ loading: false, data: { name: bestMatchName, reason } });
+          }
+        } catch (matchErr) {
+          console.error("AI Match failed, submitting to pool anyway", matchErr);
+          setAiMatch({ loading: false, error: "AI matching unavailable. Added to general pool." });
+        }
+      }
+
       // Submit the donation with the image URL (if any), preferred NGO, and AI analysis
-      mutate({ ...formData, foodImageUrl, assignedNgo: preferredNgo, ...aiFields });
+      mutate({ ...formData, foodImageUrl, assignedNgo: assignedNgoId, ...aiFields });
     } catch (err) {
       setFieldErrors((prev) => ({ 
         ...prev, 
@@ -325,6 +349,42 @@ export default function Donate() {
                               </div>
                               <p className="text-xs opacity-90 leading-relaxed">
                                 {aiAnalysis.data.notes}
+                              </p>
+                            </div>
+                         )}
+                       </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* AI Match Banner */}
+                  <AnimatePresence>
+                    {(aiMatch?.loading || aiMatch?.data || aiMatch?.error) && (
+                       <motion.div 
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          className="mt-3 overflow-hidden"
+                       >
+                         {aiMatch.loading && (
+                            <div className="bg-purple-50 border border-purple-100 rounded-xl p-3 flex items-center gap-3">
+                              <Bot className="text-purple-500 animate-pulse" size={20} />
+                              <span className="text-sm text-purple-700 font-medium">AI is finding the best NGO match...</span>
+                            </div>
+                         )}
+                         
+                         {aiMatch.error && (
+                            <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm text-gray-600">
+                              {aiMatch.error}
+                            </div>
+                         )}
+
+                         {aiMatch.data && (
+                            <div className="bg-purple-50 border border-purple-200 text-purple-800 rounded-xl p-4">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Building2 size={18} />
+                                <h4 className="font-bold text-sm">AI Matched: {aiMatch.data.name}</h4>
+                              </div>
+                              <p className="text-xs opacity-90 leading-relaxed">
+                                {aiMatch.data.reason}
                               </p>
                             </div>
                          )}

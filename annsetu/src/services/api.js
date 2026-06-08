@@ -41,6 +41,7 @@ export const uploadImage = (formData) => API.post("/upload", formData, {
 
 // ─── AI APIs ──────────────────────────────────────────────────
 export const analyzeFoodSafety = (data) => API.post("/ai/food-safety", data);
+export const matchDonation = (data) => API.post("/ai/match-donation", data);
 
 // ─── Admin APIs ───────────────────────────────────────────────
 export const getAdminUsers = () => API.get("/admin/users");
