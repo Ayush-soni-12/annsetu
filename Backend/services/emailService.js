@@ -71,9 +71,26 @@ const sendNgoApprovalEmail = async (email, orgName) => {
   }
 };
 
+const sendDonationDeliveredEmail = async (email, userName, ngoName, foodName, serves) => {
+  if (!process.env.RESEND_API_KEY) return;
+
+  try {
+    const data = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: email,
+      subject: 'Food Delivered Successfully! 🎊',
+      html: templates.getDonationDeliveredEmailHtml(userName, ngoName, foodName, serves),
+    });
+    console.log('Donation delivered email sent:', data);
+  } catch (error) {
+    console.error('Error sending donation delivered email:', error);
+  }
+};
+
 module.exports = {
   sendWelcomeEmail,
   sendNgoWelcomeEmail,
   sendDonationConfirmation,
-  sendNgoApprovalEmail
+  sendNgoApprovalEmail,
+  sendDonationDeliveredEmail
 };

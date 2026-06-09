@@ -57,9 +57,23 @@ const getNgoApprovalEmailHtml = (orgName) => `
 </div>
 `;
 
+const getDonationDeliveredEmailHtml = (userName, ngoName, foodName, serves) => `
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 10px;">
+  <h2 style="color: #16a34a; text-align: center;">Food Delivered Successfully! 🎊</h2>
+  <p>Hi ${userName},</p>
+  <p>Great news! The donation of <strong>${foodName}</strong> (serving ${serves} people) has been successfully delivered to <strong>${ngoName}</strong>.</p>
+  <p>Thank you for making a difference and helping bridge the gap between surplus food and hunger.</p>
+  <div style="text-align: center; margin: 30px 0;">
+    <p style="font-size: 18px; font-weight: bold; color: #ea580c;">"अन्न दान महा दान"</p>
+  </div>
+  <p>Best,<br/>The Annsetu Team ❤️</p>
+</div>
+`;
+
 module.exports = {
   getWelcomeEmailHtml,
   getNgoWelcomeEmailHtml,
   getDonationConfirmationHtml,
-  getNgoApprovalEmailHtml
+  getNgoApprovalEmailHtml,
+  getDonationDeliveredEmailHtml
 };
