@@ -23,7 +23,7 @@ import DashboardSidebar from "../components/DashboardSidebar";
 import { useAuth } from "../context/AuthContext";
 import { DONATION_KEYS, useMyDonations, useMyStats } from "../hooks/useDonations";
 import { getMe, updateMe } from "../services/api";
-import impactImage from "../assets/impact.png";
+import profile from "../assets/profile.png";
 
 const panelClass =
   "overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm";
@@ -408,7 +408,7 @@ export default function ProfilePage() {
             </div>
             <img
               className="h-40 w-1/2 object-cover object-center"
-              src={impactImage}
+              src={profile}
               alt="AnnSetu community impact"
             />
           </section>
