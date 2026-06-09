@@ -13,6 +13,21 @@ const userSchema = new mongoose.Schema({
     lowercase: true,
     trim: true,
   },
+  phone: {
+    type: String,
+    trim: true,
+    default: "",
+  },
+  location: {
+    type: String,
+    trim: true,
+    default: "",
+  },
+  avatarUrl: {
+    type: String,
+    trim: true,
+    default: "",
+  },
   password: {
     type: String,
     required: true,

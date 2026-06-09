@@ -15,6 +15,7 @@ import NgoDirectory from "./pages/NgoDirectory";
 import NgoProfileView from "./pages/NgoProfileView";
 import History from "./pages/History";
 import AdminDashboard from "./pages/AdminDashboard";
+import ProfilePage from "./pages/ProfilePage";
 
 const App = () => {
   const { isAuthenticated } = useAuth();
@@ -78,6 +79,14 @@ const App = () => {
         element={
           <ProtectedRoute>
             <AdminDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <ProfilePage />
           </ProtectedRoute>
         }
       />

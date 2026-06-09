@@ -19,6 +19,7 @@ export const signup = (data) => API.post("/auth/signup", data);
 export const signupNgo = (data) => API.post("/auth/signup/ngo", data);
 export const login = (data) => API.post("/auth/login", data);
 export const getMe = () => API.get("/auth/me");
+export const updateMe = (data) => API.put("/auth/me", data);
 
 // ─── NGO APIs ─────────────────────────────────────────────────
 export const getAllNgos = (params) => API.get("/ngos", { params });   // ?city=Delhi

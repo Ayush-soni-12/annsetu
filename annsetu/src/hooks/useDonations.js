@@ -10,22 +10,24 @@ export const DONATION_KEYS = {
 };
 
 // ── Donor: personal stats (totalMeals, totalDonations, etc.) ────
-export function useMyStats() {
+export function useMyStats(options = {}) {
   return useQuery({
     queryKey: DONATION_KEYS.myStats,
     queryFn: () => getMyStats().then((r) => r.data.stats),
     staleTime: 1000 * 60 * 2,        // 2 min – stats change after a donation
     placeholderData: { totalDonations: 0, totalMeals: 0, deliveredCount: 0, co2Saved: 0 },
+    ...options,
   });
 }
 
 // ── Donor: list of all their donations ───────────────────────────
-export function useMyDonations() {
+export function useMyDonations(options = {}) {
   return useQuery({
     queryKey: DONATION_KEYS.myList,
     queryFn: () => getMyDonations().then((r) => r.data.donations ?? []),
     staleTime: 1000 * 60 * 2,        // 2 min
     placeholderData: [],
+    ...options,
   });
 }
 
