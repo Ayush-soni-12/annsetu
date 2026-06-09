@@ -45,9 +45,12 @@ export const matchDonation = (data) => API.post("/ai/match-donation", data);
 
 // ─── Admin APIs ───────────────────────────────────────────────
 export const getAdminUsers = () => API.get("/admin/users");
+export const deleteAdminUser = (id) => API.delete(`/admin/users/${id}`);
 export const getAdminNgos = () => API.get("/admin/ngos");
 export const approveAdminNgo = (id) => API.put(`/admin/ngos/${id}/approve`);
+export const deleteAdminNgo = (id) => API.delete(`/admin/ngos/${id}`);
 export const getAdminDonations = () => API.get("/admin/donations");
 export const updateAdminDonationStatus = (id, data) => API.put(`/admin/donations/${id}/status`, data);
+export const deleteAdminDonation = (id) => API.delete(`/admin/donations/${id}`);
 
 export default API;
