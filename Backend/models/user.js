@@ -43,6 +43,16 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: true,   // DONORs are auto-verified; NGOs get set to false on creation
   },
+  preferences: {
+    emailNotifications: {
+      type: Boolean,
+      default: true,
+    },
+    pushNotifications: {
+      type: Boolean,
+      default: true,
+    },
+  },
 }, { timestamps: true });
 
 module.exports = mongoose.model("User", userSchema);

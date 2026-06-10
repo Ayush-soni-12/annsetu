@@ -185,12 +185,16 @@ exports.getMe = async (req, res) => {
 
 exports.updateMe = async (req, res) => {
   try {
-    const allowedFields = ["name", "phone", "location", "avatarUrl"];
+    const allowedFields = ["name", "phone", "location", "avatarUrl", "preferences"];
     const updates = {};
 
     allowedFields.forEach((field) => {
-      if (typeof req.body[field] === "string") {
-        updates[field] = req.body[field].trim();
+      if (req.body[field] !== undefined) {
+        if (typeof req.body[field] === "string") {
+          updates[field] = req.body[field].trim();
+        } else {
+          updates[field] = req.body[field];
+        }
       }
     });
 
@@ -223,5 +227,56 @@ exports.updateMe = async (req, res) => {
       success: false,
       message: error.message,
     });
+  }
+};
+exports.changePassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({ success: false, message: "Please provide old and new password" });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ success: false, message: "Incorrect old password" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    await user.save();
+
+    return res.status(200).json({ success: true, message: "Password updated successfully" });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.deleteAccount = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // If user is NGO, delete NgoProfile
+    if (user.role === "NGO") {
+      await NgoProfile.findOneAndDelete({ user: user._id });
+    }
+
+    // Optional: Cancel or delete donations created by user
+    const Donation = require("../models/donation");
+    await Donation.updateMany({ donor: user._id, status: "PENDING" }, { status: "CANCELLED" });
+
+    // Delete user
+    await User.findByIdAndDelete(req.user.id);
+
+    return res.status(200).json({ success: true, message: "Account deleted successfully" });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
   }
 };

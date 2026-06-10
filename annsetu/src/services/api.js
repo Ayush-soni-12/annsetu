@@ -13,6 +13,8 @@ export const login = (data) => API.post("/auth/login", data);
 export const logoutUser = () => API.post("/auth/logout");
 export const getMe = () => API.get("/auth/me");
 export const updateMe = (data) => API.put("/auth/me", data);
+export const changePassword = (data) => API.put("/auth/change-password", data);
+export const deleteAccount = () => API.delete("/auth/me");
 
 // ─── NGO APIs ─────────────────────────────────────────────────
 export const getAllNgos = (params) => API.get("/ngos", { params });   // ?city=Delhi

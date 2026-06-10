@@ -16,9 +16,9 @@ import NgoProfileView from "./pages/NgoProfileView";
 import History from "./pages/History";
 import AdminDashboard from "./pages/AdminDashboard";
 import ProfilePage from "./pages/ProfilePage";
-import AnnaChatWidget from "./components/AnnaChatWidget";
+import SettingsPage from "./pages/SettingsPage";
 
-const App = () => {
+const App = () => {       
   const { isAuthenticated } = useAuth();
 
   return (
@@ -51,51 +51,56 @@ const App = () => {
           <Route path="/ngos/:id" element={<NgoProfileView />} />
         </Route>
 
-        {/* Dashboard, Donate & History — outside Navbar layout */}
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/donate"
-          element={
-            <ProtectedRoute>
-              <Donate />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/history"
-          element={
-            <ProtectedRoute>
-              <History />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute>
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <ProfilePage />
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
-      
-      {/* Global AI Chatbot Widget */}
-      <AnnaChatWidget />
+      {/* Dashboard, Donate & History — outside Navbar layout */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/donate"
+        element={
+          <ProtectedRoute>
+            <Donate />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/history"
+        element={
+          <ProtectedRoute>
+            <History />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute>
+            <AdminDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <ProfilePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <SettingsPage />
+          </ProtectedRoute>
+        }
+      />
+    </Routes>
     </>
   );
 };
