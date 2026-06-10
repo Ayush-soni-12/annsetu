@@ -270,3 +270,135 @@ Return ONLY a raw JSON object strictly matching this format (no markdown fences)
     });
   }
 };
+
+exports.annaChat = async (req, res) => {
+  try {
+    const { message, history = [] } = req.body;
+
+    if (!message) {
+      return res.status(400).json({ success: false, message: "Message is required" });
+    }
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey || apiKey === "dummy") {
+      return res.status(500).json({ success: false, message: "Gemini API Key missing" });
+    }
+
+    // 1. Build a VERY DETAILED System Prompt (Rules are static, no DB data here)
+    const systemPrompt = `You are Anna, the friendly, empathetic, and highly intelligent customer support AI for Annsetu.
+Annsetu is India's premier food donation platform bridging the gap between surplus food (from individuals/restaurants) and verified NGOs.
+
+CORE PLATFORM RULES & KNOWLEDGE:
+1. How to Donate: Users must sign up as a Donor, click 'Donate Food', fill out the details (serves, food type), and upload a photo of the food. 
+2. AI Food Safety: Every uploaded food photo is scanned by our AI. If the food looks spoiled, moldy, or does not match the description, it is instantly REJECTED.
+3. AI NGO Matching: After passing the safety check, our AI automatically matches the donation to the best verified NGO based on distance, capacity, and dietary preference.
+4. NGO Approval: NGOs can sign up, but they must be manually approved by our Admin team before they can receive food.
+
+YOUR DIRECTIVES:
+- Always be polite and encouraging. Use short, concise paragraphs.
+- If someone asks which NGOs are on the platform or asks for NGOs in a specific city, YOU MUST USE THE 'search_ngos' TOOL. Do not guess or hallucinate NGO names.
+- If someone asks something unrelated to Annsetu, food donation, or charity, politely decline to answer.`;
+
+    // 2. Define the Tools for Gemini
+    const tools = [
+      {
+        functionDeclarations: [
+          {
+            name: "search_ngos",
+            description: "Fetch a real-time list of verified NGOs currently active on the Annsetu platform. Optionally filter by city.",
+            parameters: {
+              type: "OBJECT",
+              properties: {
+                city: {
+                  type: "STRING",
+                  description: "The name of the city to filter NGOs by (e.g., 'Delhi', 'Mumbai'). Leave empty to get all NGOs."
+                }
+              }
+            }
+          }
+        ]
+      }
+    ];
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-2.5-flash",
+      systemInstruction: systemPrompt,
+      tools: tools
+    });
+
+    // 3. Format History
+    // Gemini strictly requires the history to start with a 'user' message and alternate (user, model, user, model).
+    // The frontend sends the initial 'assistant' greeting, which crashes Gemini.
+    const rawHistory = history.map(msg => ({
+      role: msg.role === "assistant" ? "model" : "user",
+      parts: [{ text: msg.content }]
+    }));
+
+    const geminiHistory = [];
+    let expectedRole = "user";
+
+    for (const msg of rawHistory) {
+      if (msg.role === expectedRole) {
+        geminiHistory.push(msg);
+        expectedRole = expectedRole === "user" ? "model" : "user";
+      } else if (geminiHistory.length > 0) {
+        // If we get consecutive messages from the same role, merge them to keep Gemini happy
+        geminiHistory[geminiHistory.length - 1].parts[0].text += "\n\n" + msg.parts[0].text;
+      }
+    }
+
+    const chat = model.startChat({ history: geminiHistory });
+
+    // 4. Send the user's message
+    let result = await chat.sendMessage(message);
+
+    // 5. Check if Gemini decided to call a Tool
+    const functionCalls = result.response.functionCalls();
+    
+    if (functionCalls && functionCalls.length > 0) {
+      const call = functionCalls[0];
+      
+      if (call.name === "search_ngos") {
+        console.log(`Gemini triggered Tool: search_ngos. Args:`, call.args);
+        
+        // Execute real DB Query
+        const query = { verified: true };
+        if (call.args.city) {
+          query.city = { $regex: new RegExp(call.args.city, "i") }; // Case insensitive search
+        }
+        
+        const ngos = await NgoProfile.find(query)
+          .select("orgName city contactPhone acceptedFoodTypes capacityMeals")
+          .lean();
+        
+        const apiResponse = ngos.length > 0 
+          ? { status: "success", ngos: ngos } 
+          : { status: "not_found", message: "No verified NGOs found matching that criteria." };
+
+        // Send the tool's result back to Gemini so it can formulate a human answer
+        result = await chat.sendMessage([{
+          functionResponse: {
+            name: "search_ngos",
+            response: apiResponse
+          }
+        }]);
+      }
+    }
+
+    // 6. Return the final text
+    const replyText = result.response.text();
+
+    return res.status(200).json({
+      success: true,
+      reply: replyText
+    });
+
+  } catch (error) {
+    console.error("Anna Chatbot Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Chatbot failed to respond: " + error.message,
+    });
+  }
+};
