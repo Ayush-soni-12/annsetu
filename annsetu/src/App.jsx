@@ -16,81 +16,87 @@ import NgoProfileView from "./pages/NgoProfileView";
 import History from "./pages/History";
 import AdminDashboard from "./pages/AdminDashboard";
 import ProfilePage from "./pages/ProfilePage";
+import AnnaChatWidget from "./components/AnnaChatWidget";
 
 const App = () => {
   const { isAuthenticated } = useAuth();
 
   return (
-    <Routes>
-      {/* Routes with Navbar */}
-      <Route path="/" element={<Navbar />}>
-        <Route index element={<Landing />} />
-        <Route path="/how-it-works" element={<HowIt />} />
-        <Route path="/about" element={<About />} />
+    <>
+      <Routes>
+        {/* Routes with Navbar */}
+        <Route path="/" element={<Navbar />}>
+          <Route index element={<Landing />} />
+          <Route path="/how-it-works" element={<HowIt />} />
+          <Route path="/about" element={<About />} />
 
-        {/* Redirect logged-in users away from login/signup */}
+          {/* Redirect logged-in users away from login/signup */}
+          <Route
+            path="/login"
+            element={
+              isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
+            }
+          />
+          <Route
+            path="/signup"
+            element={
+              isAuthenticated ? <Navigate to="/dashboard" replace /> : <Signup />
+            }
+          />
+          <Route
+            path="/signup/ngo"
+            element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <NgoSignup />}
+          />
+          <Route path="/ngos" element={<NgoDirectory />} />
+          <Route path="/ngos/:id" element={<NgoProfileView />} />
+        </Route>
+
+        {/* Dashboard, Donate & History — outside Navbar layout */}
         <Route
-          path="/login"
+          path="/dashboard"
           element={
-            isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
           }
         />
         <Route
-          path="/signup"
+          path="/donate"
           element={
-            isAuthenticated ? <Navigate to="/dashboard" replace /> : <Signup />
+            <ProtectedRoute>
+              <Donate />
+            </ProtectedRoute>
           }
         />
         <Route
-          path="/signup/ngo"
-          element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <NgoSignup />}
+          path="/history"
+          element={
+            <ProtectedRoute>
+              <History />
+            </ProtectedRoute>
+          }
         />
-        <Route path="/ngos" element={<NgoDirectory />} />
-        <Route path="/ngos/:id" element={<NgoProfileView />} />
-      </Route>
-
-      {/* Dashboard, Donate & History — outside Navbar layout */}
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/donate"
-        element={
-          <ProtectedRoute>
-            <Donate />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/history"
-        element={
-          <ProtectedRoute>
-            <History />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin"
-        element={
-          <ProtectedRoute>
-            <AdminDashboard />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/profile"
-        element={
-          <ProtectedRoute>
-            <ProfilePage />
-          </ProtectedRoute>
-        }
-      />
-    </Routes>
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+      
+      {/* Global AI Chatbot Widget */}
+      <AnnaChatWidget />
+    </>
   );
 };
 
