@@ -1,50 +1,70 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { getMe, logoutUser } from "../services/api";
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const queryClient = useQueryClient();
 
-  // On first load, restore auth from localStorage
+  // On first load, check with backend if we have a valid cookie session
   useEffect(() => {
-    const savedToken = localStorage.getItem("token");
-    const savedUser = localStorage.getItem("user");
-    if (savedToken && savedUser) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setToken(savedToken);
-      setUser(JSON.parse(savedUser));
-    }
+    const fetchUser = async () => {
+      try {
+        const { data } = await getMe();
+        if (data.success) {
+          setUser(data.user);
+        }
+      } catch (error) {
+        console.error("Failed to fetch user", error);
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchUser();
   }, []);
 
-  const login = (newToken, newUser) => {
-    localStorage.setItem("token", newToken);
-    localStorage.setItem("user", JSON.stringify(newUser));
-    setToken(newToken);
-    setUser(newUser);
+  const login = (token, newUser) => {
+    // We ignore 'token' because the backend sets it as an HttpOnly cookie
+    // but we support the existing function signature.
+    const userToSet = newUser || token; 
+    setUser(userToSet);
   };
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setToken(null);
-    setUser(null);
-    queryClient.clear();
+  const logout = async () => {
+    try {
+      await logoutUser();
+    } catch (error) {
+      console.error("Logout failed", error);
+    } finally {
+      setUser(null);
+      queryClient.clear();
+      // Clear legacy local storage tokens just in case
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+    }
   };
 
   const updateUser = (updatedUser) => {
-    localStorage.setItem("user", JSON.stringify(updatedUser));
     setUser(updatedUser);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-600"></div>
+      </div>
+    );
+  }
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        token,
-        isAuthenticated: !!token,
+        isAuthenticated: !!user,
         login,
         logout,
         updateUser,
