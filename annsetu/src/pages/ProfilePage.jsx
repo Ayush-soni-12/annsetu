@@ -504,7 +504,7 @@ function ContactRow({ Icon, value }) {
   return (
     <div className="flex max-w-full items-center gap-3 text-left">
       <Icon className="shrink-0 text-gray-400" size={18} />
-      <span className="[overflow-wrap:anywhere]">{value || "Not added"}</span>
+      <span className="wrap-anywhere">{value || "Not added"}</span>
     </div>
   );
 }
@@ -522,7 +522,7 @@ function DetailRow({ label, value }) {
   return (
     <div className="grid grid-cols-1 gap-1 border-b border-gray-100 py-3.5 sm:grid-cols-[150px_1fr] sm:gap-5">
       <dt className="font-bold">{label}</dt>
-      <dd className="m-0 text-gray-600 [overflow-wrap:anywhere]">
+      <dd className="m-0 text-gray-600 wrap-anywhere">
         {value || "Not added"}
       </dd>
     </div>
