@@ -4,6 +4,16 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { sendWelcomeEmail, sendNgoWelcomeEmail } = require("../services/emailService");
 
+// Helper function to set cookie
+const setTokenCookie = (res, token) => {
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  });
+};
+
 exports.signup = async (req, res) => {
   try {
     const { name, email, password, role = "DONOR", ...ngoFields } = req.body;
@@ -68,13 +78,14 @@ exports.signup = async (req, res) => {
 
     user.password = undefined;
 
+    setTokenCookie(res, token);
+
     return res.status(201).json({
       success: true,
       message:
         role === "NGO"
           ? "NGO registered! Your profile is under review. We'll notify you once approved."
           : "Account created successfully",
-      token,
       user,
     });
   } catch (error) {
@@ -84,9 +95,6 @@ exports.signup = async (req, res) => {
     });
   }
 };
-
-
-
 
 exports.login = async (req, res) => {
     try {
@@ -101,7 +109,6 @@ exports.login = async (req, res) => {
                 message: "No account found with this email"
             });
         }
-
 
         const isMatch = await bcrypt.compare(
             password,
@@ -130,10 +137,11 @@ exports.login = async (req, res) => {
 
         user.password = undefined;
 
+        setTokenCookie(res, token);
+
         return res.status(200).json({
             success: true,
             message: "Login successful",
-            token,
             user
         });
 
@@ -145,6 +153,14 @@ exports.login = async (req, res) => {
         });
 
     }
+};
+
+exports.logout = (req, res) => {
+  res.clearCookie("token");
+  return res.status(200).json({
+    success: true,
+    message: "Logged out successfully",
+  });
 };
 
 exports.getMe = async (req, res) => {
