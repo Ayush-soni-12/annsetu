@@ -2,10 +2,11 @@ const express = require('express');
 const router = express.Router();
 const { auth } = require('../middlewares/auth');
 const { upload } = require('../config/cloudinary');
+const controlPlane = require('../middlewares/neuralcontrol');
 
 // POST /api/upload
 // Expects a form-data payload with a field named "image"
-router.post('/', auth, upload.single('image'), (req, res) => {
+router.post('/', auth, controlPlane.middleware("/api/upload", { priority: "medium" }), upload.single('image'), (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'No file uploaded' });

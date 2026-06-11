@@ -1,8 +1,14 @@
 const OpenAI = require("openai");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const controlPlane = require("../middlewares/neuralcontrol");
 
 exports.analyzeFoodSafety = async (req, res) => {
   try {
+    if (req.controlPlane) {
+      if (req.controlPlane.isRateLimitedCustomer) return res.status(429).json({ success: false, message: "Rate limit exceeded. Please slow down." });
+      if (req.controlPlane.isLoadShedding) return res.status(503).json({ success: false, message: "Service under heavy load. Request dropped." });
+      if (req.controlPlane.shouldSkip) return res.status(503).json({ success: false, message: "Circuit breaker active. AI service is currently unavailable." });
+    }
     console.log("=== AI Food Safety Check Started ===");
     const { imageUrl, foodName, foodType } = req.body;
     console.log("Received data:", { imageUrl, foodName, foodType });
@@ -177,6 +183,11 @@ const NgoProfile = require("../models/ngoProfile");
 
 exports.matchDonation = async (req, res) => {
   try {
+    if (req.controlPlane) {
+      if (req.controlPlane.isRateLimitedCustomer) return res.status(429).json({ success: false, message: "Rate limit exceeded. Please slow down." });
+      if (req.controlPlane.isLoadShedding) return res.status(503).json({ success: false, message: "Service under heavy load. Request dropped." });
+      if (req.controlPlane.shouldSkip) return res.status(503).json({ success: false, message: "Circuit breaker active. AI service is currently unavailable." });
+    }
     console.log("=== AI Smart Donation Matching Started ===");
     const { foodType, foodCategory, serves, address } = req.body;
 
@@ -196,12 +207,33 @@ exports.matchDonation = async (req, res) => {
 
     // 1. PRE-FILTER: Ask the database for NGOs that match the strict rules
     // Rule: Must be verified, must have capacity, must accept food type & category
-    const eligibleNgos = await NgoProfile.find({
-      verified: true, // Only match with verified NGOs
-      capacityMeals: { $gte: Number(serves) }, // NGO must have enough capacity
-      acceptedFoodTypes: foodType,             // NGO must accept "Cooked Food" etc.
-      dietaryPref: foodCategory                // NGO must accept "Vegetarian" etc.
-    }).select("_id orgName address city capacityMeals"); // Only fetch what AI needs
+    // 
+    // REQUEST COALESCING: If multiple donors submit at the exact same millisecond
+    // with the same food type/category/serves, only ONE DB query runs and the
+    // result is shared. Prevents thundering herd on the NGO collection.
+    const coalesceKey = `ngo-match:${foodType}:${foodCategory}:${Number(serves)}`;
+    const ngoSpan = req.controlPlane?.startSpan?.("db:findEligibleNgos");
+
+    const eligibleNgos = await (req.controlPlane?.coalesce
+      ? req.controlPlane.coalesce(coalesceKey, () =>
+          controlPlane.withDbTimeout("/db/ngos/match", () =>
+            NgoProfile.find({
+              verified: true,
+              capacityMeals: { $gte: Number(serves) },
+              acceptedFoodTypes: foodType,
+              dietaryPref: foodCategory,
+            }).select("_id orgName address city capacityMeals")
+          )
+        )
+      : NgoProfile.find({
+          verified: true,
+          capacityMeals: { $gte: Number(serves) },
+          acceptedFoodTypes: foodType,
+          dietaryPref: foodCategory,
+        }).select("_id orgName address city capacityMeals")
+    );
+
+    ngoSpan?.end?.({ count: eligibleNgos?.length ?? 0 });
 
     if (!eligibleNgos || eligibleNgos.length === 0) {
       return res.status(404).json({
@@ -273,6 +305,11 @@ Return ONLY a raw JSON object strictly matching this format (no markdown fences)
 
 exports.annaChat = async (req, res) => {
   try {
+    if (req.controlPlane) {
+      if (req.controlPlane.isRateLimitedCustomer) return res.status(429).json({ success: false, message: "Rate limit exceeded. Please slow down." });
+      if (req.controlPlane.isLoadShedding) return res.status(503).json({ success: false, message: "Service under heavy load. Request dropped." });
+      if (req.controlPlane.shouldSkip) return res.status(503).json({ success: false, message: "Circuit breaker active. AI service is currently unavailable." });
+    }
     const { message, history = [] } = req.body;
 
     if (!message) {

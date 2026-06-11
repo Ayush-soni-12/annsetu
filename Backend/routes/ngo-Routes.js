@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { auth } = require("../middlewares/auth");
+const controlPlane = require("../middlewares/neuralcontrol");
 const {
   getAllNgos,
   getNgoById,
@@ -10,14 +11,14 @@ const {
 } = require("../controllers/ngo-Controllers");
 
 // ── Public routes (no auth needed) ───────────────────────────
-router.get("/", getAllNgos);               // GET /api/ngos?city=Delhi&dietaryPref=Vegetarian
+router.get("/", controlPlane.middleware("/api/ngos", { priority: "medium" }), getAllNgos);               // GET /api/ngos?city=Delhi&dietaryPref=Vegetarian
 // ── NGO auth-protected routes ─────────────────────────────────
-router.get("/my-profile", auth, getMyProfile);          // GET  /api/ngos/my-profile
-router.put("/my-profile", auth, updateMyProfile);       // PUT  /api/ngos/my-profile
-router.get("/donations", auth, getNgoDonations);        // GET  /api/ngos/donations
+router.get("/my-profile", auth, controlPlane.middleware("/api/ngos/my-profile", { priority: "high" }), getMyProfile);          // GET  /api/ngos/my-profile
+router.put("/my-profile", auth, controlPlane.middleware("/api/ngos/my-profile", { priority: "high" }), updateMyProfile);       // PUT  /api/ngos/my-profile
+router.get("/donations", auth, controlPlane.middleware("/api/ngos/donations", { priority: "high" }), getNgoDonations);        // GET  /api/ngos/donations
 
 // ── Public single profile route ────────────────────────────────
-router.get("/:id", getNgoById);           // GET /api/ngos/:id
+router.get("/:id", controlPlane.middleware("/api/ngos/:id", { priority: "low" }), getNgoById);           // GET /api/ngos/:id
 
 
 module.exports = router;

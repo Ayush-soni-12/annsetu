@@ -3,6 +3,7 @@ const NgoProfile = require("../models/ngoProfile");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { sendWelcomeEmail, sendNgoWelcomeEmail } = require("../services/emailService");
+const controlPlane = require("../middlewares/neuralcontrol");
 
 // Helper function to set cookie
 const setTokenCookie = (res, token) => {
@@ -16,10 +17,15 @@ const setTokenCookie = (res, token) => {
 
 exports.signup = async (req, res) => {
   try {
+    if (req.controlPlane) {
+      if (req.controlPlane.isRateLimitedCustomer) return res.status(429).json({ success: false, message: "Rate limit exceeded." });
+      if (req.controlPlane.isLoadShedding) return res.status(503).json({ success: false, message: "Service under heavy load." });
+    }
     const { name, email, password, role = "DONOR", ...ngoFields } = req.body;
 
     // Check for existing user
-    const existingUser = await User.findOne({ email });
+    const span = req.controlPlane?.startSpan?.("db:signup");
+    const existingUser = await controlPlane.withDbTimeout("/db/users/find", () => User.findOne({ email }));
     if (existingUser) {
       return res.status(409).json({
         success: false,
@@ -32,13 +38,13 @@ exports.signup = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     // NGOs start unverified — admin must approve before they appear in directory
-    const user = await User.create({
+    const user = await controlPlane.withDbTimeout("/db/users/find", () => User.create({
       name,
       email,
       password: hashedPassword,
       role,
       isVerified: role === "NGO" ? false : true,
-    });
+    }));
 
     // If registering as NGO, also create the profile document
     if (role === "NGO") {
@@ -77,6 +83,7 @@ exports.signup = async (req, res) => {
     }
 
     user.password = undefined;
+    span?.end?.({ userId: user._id.toString() });
 
     setTokenCookie(res, token);
 
@@ -98,10 +105,16 @@ exports.signup = async (req, res) => {
 
 exports.login = async (req, res) => {
     try {
+        if (req.controlPlane) {
+            if (req.controlPlane.isRateLimitedCustomer) return res.status(429).json({ success: false, message: "Rate limit exceeded." });
+            if (req.controlPlane.isLoadShedding) return res.status(503).json({ success: false, message: "Service under heavy load." });
+        }
         const { email, password } = req.body;
         // Note: Zod middleware already validated fields before we get here
 
-        const user = await User.findOne({ email });
+        const span = req.controlPlane?.startSpan?.("db:login");
+        const user = await controlPlane.withDbTimeout("/db/users/find", () => User.findOne({ email }));
+        span?.end?.();
 
         if (!user) {
             return res.status(404).json({
@@ -165,7 +178,13 @@ exports.logout = (req, res) => {
 
 exports.getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
+    if (req.controlPlane) {
+      if (req.controlPlane.isRateLimitedCustomer) return res.status(429).json({ success: false, message: "Rate limit exceeded." });
+      if (req.controlPlane.isLoadShedding) return res.status(503).json({ success: false, message: "Service under heavy load." });
+    }
+    const span = req.controlPlane?.startSpan?.("db:getMe");
+    const user = await controlPlane.withDbTimeout("/db/users/find", () => User.findById(req.user.id).select("-password"));
+    span?.end?.();
 
     if (!user) {
       return res.status(404).json({
@@ -185,6 +204,10 @@ exports.getMe = async (req, res) => {
 
 exports.updateMe = async (req, res) => {
   try {
+    if (req.controlPlane) {
+      if (req.controlPlane.isRateLimitedCustomer) return res.status(429).json({ success: false, message: "Rate limit exceeded." });
+      if (req.controlPlane.isLoadShedding) return res.status(503).json({ success: false, message: "Service under heavy load." });
+    }
     const allowedFields = ["name", "phone", "location", "avatarUrl", "preferences"];
     const updates = {};
 
@@ -205,10 +228,11 @@ exports.updateMe = async (req, res) => {
       });
     }
 
-    const user = await User.findByIdAndUpdate(req.user.id, updates, {
-      new: true,
-      runValidators: true,
-    }).select("-password");
+    const span = req.controlPlane?.startSpan?.("db:updateMe");
+    const user = await controlPlane.withDbTimeout("/db/users/find", () =>
+      User.findByIdAndUpdate(req.user.id, updates, { new: true, runValidators: true }).select("-password")
+    );
+    span?.end?.();
 
     if (!user) {
       return res.status(404).json({

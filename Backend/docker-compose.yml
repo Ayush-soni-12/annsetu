@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  annsetu-redis:
+    image: redis:alpine
+    container_name: annsetu-redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - annsetu_redis_data:/data
+    restart: unless-stopped
+
+volumes:
+  annsetu_redis_data:

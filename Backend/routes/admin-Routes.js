@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const { auth, isAdmin } = require("../middlewares/auth");
+const controlPlane = require("../middlewares/neuralcontrol");
 const {
   getAllUsers,
   getAllNgos,
@@ -14,7 +15,7 @@ const {
 } = require("../controllers/admin-Controllers");
 
 // Apply auth and isAdmin middleware to all admin routes
-router.use(auth, isAdmin);
+router.use(auth, isAdmin, controlPlane.middleware("/api/admin", { priority: "medium" }));
 
 // Users
 router.get("/users", getAllUsers);
