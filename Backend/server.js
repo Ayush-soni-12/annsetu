@@ -110,7 +110,7 @@ app.listen(PORT, async () => {
             "/db/admin/donations",
         ]);
         console.log("NeuralControl: All endpoints pre-warmed ✓");
-        console.log(controlPlane)
+        // console.log(controlPlane)
     } catch (err) {
         console.warn("NeuralControl: Pre-warm failed (non-critical):", err.message);
     }
