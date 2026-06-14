@@ -76,7 +76,7 @@ export default function History() {
     <div className="min-h-screen bg-[#f8fafc] flex">
       <DashboardSidebar />
 
-      <main className="flex-1 ml-0 lg:ml-72 min-h-screen overflow-y-auto p-6 md:p-8 relative">
+      <main className="flex-1 ml-0 lg:ml-72 min-h-screen relative overflow-y-auto p-6 md:p-8 relative">
         <div className="w-full max-w-5xl mx-auto">
 
 

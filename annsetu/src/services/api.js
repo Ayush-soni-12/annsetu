@@ -1,8 +1,10 @@
 import axios from "axios";
 
-// All API calls go to this base URL
+// All API calls go to this base URL.
+// In dev: Vite's proxy forwards /api → http://localhost:3000/api (no CORS needed).
+// In prod: set VITE_API_BASE_URL to your deployed backend URL.
 const API = axios.create({
-  baseURL: "http://localhost:3000/api",
+  baseURL: import.meta.env.VITE_API_BASE_URL || "/api",
   withCredentials: true, // Automatically send cookies with every request
 });
 

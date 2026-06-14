@@ -177,7 +177,7 @@ export default function Donate() {
     <div className="min-h-screen bg-[#faf8f5] flex">
       <DashboardSidebar />
 
-      <main className="flex-1 ml-0 lg:ml-72 min-h-screen overflow-y-auto p-6 md:p-8 bg-[#f8fafc]">
+      <main className="flex-1 ml-0 lg:ml-72 min-h-screen relative overflow-y-auto p-6 md:p-8 bg-[#f8fafc]">
         <div className="w-full max-w-screen-2xl mx-auto">
 
           {preferredNgo && (

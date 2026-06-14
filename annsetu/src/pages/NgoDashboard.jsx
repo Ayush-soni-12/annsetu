@@ -71,7 +71,7 @@ export default function NgoDashboard() {
       <DashboardSidebar />
 
       {/* Main Content */}
-      <main className="flex-1 ml-0 lg:ml-72 min-h-screen overflow-y-auto p-8">
+      <main className="flex-1 ml-0 lg:ml-72 min-h-screen relative overflow-y-auto p-8">
         
         {/* Welcome */}
         <div className="mb-8">
@@ -137,7 +137,7 @@ export default function NgoDashboard() {
             {donationsLoading ? (
               <div className="flex justify-center py-10"><Loader2 className="animate-spin text-orange-500" size={32} /></div>
             ) : donations?.length > 0 ? (
-              <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+              <div className="space-y-4 max-h-[400px] relative overflow-y-auto pr-2">
                 {donations.map((d) => (
                   <div key={d._id} className="flex items-center justify-between p-4 rounded-2xl border border-gray-100 hover:bg-orange-50 transition-colors">
                     <div className="flex items-center gap-4">

@@ -214,7 +214,7 @@ export default function ProfilePage() {
     <div className="flex min-h-screen bg-[#faf8f5] text-gray-900">
       <DashboardSidebar />
 
-      <main className="ml-0 min-h-screen flex-1 overflow-y-auto p-4 sm:p-6 lg:ml-72 lg:p-8">
+      <main className="ml-0 min-h-screen flex-1 relative overflow-y-auto p-4 sm:p-6 lg:ml-72 lg:p-8">
         <div className="mx-auto w-full max-w-6xl">
           <header className="mb-6 flex items-end justify-between gap-5">
             <div>

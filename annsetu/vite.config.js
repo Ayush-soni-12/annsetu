@@ -8,4 +8,14 @@ export default defineConfig({
   optimizeDeps: {
     include: ['recharts'],
   },
+  server: {
+    proxy: {
+      // All /api requests from the browser are forwarded to the Express backend.
+      // This makes frontend + backend appear on the same origin → no CORS needed.
+      '/api': {
+        target: 'http://localhost:4000',        changeOrigin: true,
+        secure: false,
+      },
+    },
+  },
 })

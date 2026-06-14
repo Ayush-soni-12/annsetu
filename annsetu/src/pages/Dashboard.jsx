@@ -89,7 +89,7 @@ function DonorDashboard() {
       <DashboardSidebar />
 
       {/* Main Content */}
-      <main className="flex-1 ml-0 lg:ml-72 min-h-screen overflow-y-auto p-8">
+      <main className="flex-1 ml-0 lg:ml-72 min-h-screen relative overflow-y-auto p-8">
 
         {/* Welcome */}
         <div className="mb-8">
