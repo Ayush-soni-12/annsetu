@@ -13,7 +13,7 @@ export default defineConfig({
       // All /api requests from the browser are forwarded to the Express backend.
       // This makes frontend + backend appear on the same origin → no CORS needed.
       '/api': {
-        target: 'http://localhost:4000',        changeOrigin: true,
+        target: 'https://api.annsetu.online',        changeOrigin: true,
         secure: false,
       },
     },
