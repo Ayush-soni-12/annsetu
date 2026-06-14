@@ -20,7 +20,7 @@ const app = express();
 
 // Middlewares
 app.use(cors({
-    origin: ["https://annsetu.online", "https://an.annsetu.online"],
+    origin: ["https://annsetu.online", "https://www.annsetu.online"],
     credentials: true // essential for your secure cookies to work
 }));
 
