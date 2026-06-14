@@ -48,7 +48,7 @@ exports.signup = async (req, res) => {
 
     // If registering as NGO, also create the profile document
     if (role === "NGO") {
-      await NgoProfile.create({
+      await controlPlane.withDbTimeout("/db/ngos/find", () => NgoProfile.create({
         user: user._id,
         orgName: ngoFields.orgName,
         description: ngoFields.description || "",
@@ -65,7 +65,7 @@ exports.signup = async (req, res) => {
         operatingHours: ngoFields.operatingHours || "9AM - 6PM",
         focusArea: ngoFields.focusArea || "All",
         verified: false,
-      });
+      }));
     }
 
     // Generate JWT
